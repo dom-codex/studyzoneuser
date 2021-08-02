@@ -1,5 +1,5 @@
-const Sequelize = require("sequelize");
 const sequelize = require("../utils/database");
+const Sequelize = require("sequelize");
 const user = sequelize.define("user", {
   id: {
     type: Sequelize.INTEGER,
@@ -12,8 +12,12 @@ const user = sequelize.define("user", {
     allowNull: false,
     //set maxlength later
   },
+  otherName: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
   phone: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
   email: {
@@ -28,6 +32,11 @@ const user = sequelize.define("user", {
     type: Sequelize.STRING,
     defaultValue: "0000",
   },
+  referral: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: "00000",
+  },
   isActivated: {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
@@ -37,3 +46,4 @@ const user = sequelize.define("user", {
     defaultValue: false,
   },
 });
+module.exports = user;

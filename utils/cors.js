@@ -1,4 +1,4 @@
-export default (_, res, next) => {
+module.exports = (_, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
