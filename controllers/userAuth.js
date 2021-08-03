@@ -2,6 +2,7 @@ const bcyrpt = require("bcrypt");
 const codeGen = require("nanoid");
 //models import
 const userDb = require("../models/user");
+const { Op } = require("sequelize");
 //helpers impor
 const addReferral = require("../helpers/addReferral");
 exports.signUp = async (req, res, next) => {
@@ -107,5 +108,52 @@ exports.login = async (req, res, next) => {
   res.status(200).json({
     code: 200,
     message: "logged in",
+  });
+};
+//account activation controller
+exports.activateAccount = async (req, res, next) => {
+  const { email, activationCode } = req.body;
+  console.log(email);
+  //1. check if account is already created
+  let user = await userDb.findOne({
+    where: {
+      [Op.and]: [
+        {
+          email: email,
+        },
+        { activationCode: activationCode },
+      ],
+    },
+    attributes: ["id", "email", "activationCode", "isActivated", "isLoggedIn"],
+  });
+  if (!user) {
+    return res.status(404).json({
+      code: 404,
+      message: "invalide activation code or email",
+    });
+  }
+  if (user.isActivated) {
+    return res.status(300).json({
+      code: 300,
+      message: "already activated",
+    });
+  }
+  if (user.isLoggedIn) {
+    return res.status(300).json({
+      code: 300,
+      message: "already logged in",
+    });
+  }
+  user.freeTrialStartMillis = Date.now();
+  user.freeTrialEndMillis = 86400 + user.freeTrialStartMillis;
+  user.isLoggedIn = true;
+  user.isActivated = true;
+  user.activationCode = null;
+  user = await user.save();
+  res.json({
+    code: 200,
+    message: "account activated",
+    freeTrialStart: user.freeTrialStartMillis,
+    freeTrialEndMillis: user.freeTrialEndMillis,
   });
 };

@@ -7,4 +7,5 @@ const signUpValidator = require("../helpers/signUpValidator");
 const loginValidator = require("../helpers/loginValidator");
 router.post("/user/signup", signUpValidator, userAuth.signUp);
 router.post("/user/login", loginValidator, userAuth.login);
+router.post("/user/account/activation", userAuth.activateAccount);
 module.exports = router;

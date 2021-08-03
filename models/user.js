@@ -49,5 +49,17 @@ const user = sequelize.define("user", {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
   },
+  freeTrialOn: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: true,
+  },
+  freeTriaLStartMillis: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+  },
+  freeEndTrialMillis: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+  },
 });
 module.exports = user;
