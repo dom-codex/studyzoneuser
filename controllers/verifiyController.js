@@ -1,10 +1,13 @@
 const userDb = require("../models/user");
 exports.verifyFreeTrial = async (req, res, next) => {
-  const { email } = req.body;
+  const { email, uid } = req.body;
   //1. get user
   const user = await userDb.findOne({
     where: {
-      email: email,
+      [Op.and]: [
+        { email, email },
+        { uid, uid },
+      ],
     },
     attributes: [
       "id",

@@ -1,11 +1,12 @@
 const userDb = require("../models/user");
 const bcrypt = require("bcrypt");
+const { Op } = require("sequelize");
 module.exports = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, uid } = req.body;
   //1. check if usr exist
   const user = await userDb.findOne({
     where: {
-      email: email,
+      [Op.and]: [{ email: email }, { uid: uid }],
     },
     attributes: ["id", "email", "isLoggedIn", "password", "isActivated"],
   });
