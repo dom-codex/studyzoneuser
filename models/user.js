@@ -64,11 +64,11 @@ const user = sequelize.define("user", {
     defaultValue: true,
   },
   freeTrialStartMillis: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.BIGINT,
     defaultValue: 0,
   },
-  freeEndTrialMillis: {
-    type: Sequelize.INTEGER,
+  freeTrialEndMillis: {
+    type: Sequelize.BIGINT,
     defaultValue: 0,
   },
 });

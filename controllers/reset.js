@@ -2,6 +2,7 @@ const nanoid = require("nanoid").nanoid;
 const userDb = require("../models/user");
 const pw = require("../models/passwordReset");
 const bcrypt = require("bcrypt");
+const { Op } = require("sequelize");
 exports.resetPassword = async (req, res, next) => {
   const canReset = req.canProceed;
   const user = req.user;
@@ -13,9 +14,10 @@ exports.resetPassword = async (req, res, next) => {
   }
   const resetToken = nanoid(6);
   //create a reset entry
+  const time = 10 * 60 * 1000;
   await pw.create({
     token: resetToken,
-    expires: Date.now() + 5 * 60,
+    expires: Date.now() + time,
     userId: user.id,
   });
   //send email
@@ -29,8 +31,7 @@ exports.changePassword = async (req, res, next) => {
   const canReset = req.canProceed;
   const user = await userDb.findOne({
     where: {
-      email,
-      email,
+      email: email,
     },
     attribute: ["id", "email", "password"],
   });
@@ -59,6 +60,7 @@ exports.changePassword = async (req, res, next) => {
     });
   }
   if (pwResetRecord.expires < Date.now()) {
+    await pw.destroy({ where: { userId: user.id } });
     return res.status(400).json({
       code: 400,
       message: "token expired",
@@ -70,8 +72,11 @@ exports.changePassword = async (req, res, next) => {
       message: "failed, account not activated",
     });
   }
-  const newHashPassword = await bcrypt.compare(newPassword, 12);
+  const newHashPassword = await bcrypt.hash(newPassword, 12);
   user.password = newHashPassword;
   await user.save();
-  await pwResetRecord.destory();
+  res.status(200).json({
+    code: 200,
+    message: "password changed sucessfully",
+  });
 };

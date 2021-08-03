@@ -1,4 +1,5 @@
 const userDb = require("../models/user");
+const { Op } = require("sequelize");
 exports.verifyFreeTrial = async (req, res, next) => {
   const { email, uid } = req.body;
   //1. get user
@@ -15,6 +16,7 @@ exports.verifyFreeTrial = async (req, res, next) => {
       "freeTrialOn",
       "freeTrialStartMillis",
       "freeTrialEndMillis",
+      "isActivated",
     ],
   });
   if (!user) {
@@ -50,7 +52,7 @@ exports.verifyFreeTrial = async (req, res, next) => {
   res.status(200).json({
     code: 200,
     message: "free trial off",
-    freeTrialStartMillis,
-    freeTrialStartMillis,
+    endMillis,
+    startMillis,
   });
 };

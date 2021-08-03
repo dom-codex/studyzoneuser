@@ -1,16 +1,17 @@
 const { Op } = require("sequelize");
 const referral = require("../models/referral");
+const referralIdRecord = require("../models/referralList");
 const userDb = require("../models/user");
 const nanoid = require("nanoid").nanoid;
 module.exports = async (referralCode, newUser) => {
   //check if referral exists
-  const referralUser = await userDb.findOne({
+  const referrer = await userDb.findOne({
     where: {
       referral: referralCode,
     },
     attributes: ["email", "id"],
   });
-  if (referralUser == null) {
+  if (referrer == null) {
     return false;
   }
   //comfirm uniquness of new user code
@@ -22,11 +23,28 @@ module.exports = async (referralCode, newUser) => {
     codeIstaken = await validateReferralCode(newUser);
   }
   //get amount to earn
-  const ref = await referral.create({
-    userId: referralUser.id,
-    totalEarned: 20,
-    referredId: newUser.id,
-    referredEmail: newUser.email,
+  //get user record from referral main listen
+  const referrerRecord = await referral.findOne({
+    where: {
+      userId: referrer.id,
+    },
+  });
+  //if no record is established for the user create one and do necessary increments
+  //if record already exist do necessary updates
+  if (!referrerRecord) {
+    const ref = await referral.create({
+      userId: referrer.id,
+      totalEarned: 20,
+      noOfReferrals: 1,
+    });
+  } else {
+    referrerRecord.totalEarned = referrerRecord.totalEarned + 20;
+    referrerRecord.noOfReferrals = referrerRecord.noOfReferrals + 1;
+    await referrerRecord.save();
+  }
+  await referralIdRecord.create({
+    referrer: referrer.id,
+    referred: newUser.id,
   });
   return true;
 };

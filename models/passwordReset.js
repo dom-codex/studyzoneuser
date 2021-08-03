@@ -5,7 +5,7 @@ const pw = sequelize.define("passwordReset", {
     type: Sequelize.STRING,
   },
   expires: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.BIGINT,
   },
 });
 module.exports = pw;

@@ -16,4 +16,5 @@ module.exports = async (req, res, next) => {
   }
   req.canProceed = true;
   req.user = user;
+  next();
 };
