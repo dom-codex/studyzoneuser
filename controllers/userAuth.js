@@ -71,7 +71,7 @@ exports.signUp = async (req, res, next) => {
     });
   }
 };
-//login logix
+//login controller
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   //find user
