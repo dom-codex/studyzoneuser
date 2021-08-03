@@ -24,6 +24,10 @@ const user = sequelize.define("user", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  password: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
   deviceId: {
     type: Sequelize.STRING,
     allowNull: false,

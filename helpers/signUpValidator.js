@@ -1,7 +1,6 @@
 const userDb = require("../models/user");
 module.exports = async (req, res, next) => {
   //validate all inputs
-  console.log(req.body);
   const { email, deviceId } = req.body;
   //1. check if email is all ready taken
   const user = await userDb.findOne({

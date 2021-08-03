@@ -71,3 +71,41 @@ exports.signUp = async (req, res, next) => {
     });
   }
 };
+//login logix
+exports.login = async (req, res, next) => {
+  const { email, password } = req.body;
+  //find user
+  const user = await userDb.findOne({
+    where: {
+      email: email,
+    },
+    attributes: ["id", "email", "isLoggedIn", "password"],
+  });
+  if (!user) {
+    return res.status(404).json({
+      code: 404,
+      message: "invalid email or password",
+    });
+  }
+  const canlogin = req.canLogin;
+  if (!canlogin) {
+    return res.status(404).json({
+      code: 404,
+      message: "invalid email or password",
+    });
+  }
+  //check password again
+  const result = await bcyrpt.compare(password, user.password);
+  if (!result) {
+    return res.status(404).json({
+      code: 404,
+      message: "invalid email or password",
+    });
+  }
+  user.isLoggedIn = true;
+  await user.save();
+  res.status(200).json({
+    code: 200,
+    message: "logged in",
+  });
+};
