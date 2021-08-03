@@ -17,6 +17,7 @@ const authRoute = require("./router/authRoute");
 const resetRoute = require("./router/reset");
 const verifyRoute = require("./router/verify");
 const notificationRoute = require("./router/notifications");
+const uploadRoute = require("./router/upload");
 //initialize express
 const app = express();
 //create server
@@ -31,6 +32,7 @@ app.use("/auth", authRoute);
 app.use("/reset", resetRoute);
 app.use("/verify", verifyRoute);
 app.use("/notifications", notificationRoute);
+app.use("/upload", uploadRoute);
 //connect to database
 user.hasMany(referral);
 user.hasMany(pwReset);

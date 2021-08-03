@@ -28,6 +28,16 @@ const user = sequelize.define("user", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  bank: {
+    type: Sequelize.STRING,
+  },
+  accountNo: {
+    type: Sequelize.STRING,
+  },
+  uid: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+  },
   deviceId: {
     type: Sequelize.STRING,
     allowNull: false,

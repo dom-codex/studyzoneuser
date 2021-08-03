@@ -1,13 +1,13 @@
 const notifyDb = require("../models/notifications");
 const userDb = require("../models/user");
 exports.getAllNotifications = async (req, res, next) => {
-  const { email } = req.body;
+  const { email, uid } = req.body;
   const { page } = req.query;
   const noOfOffsets = 10;
   //1. find user
   const user = await userDb.findOne({
     where: {
-      email: email,
+      [Op.and]: [{ email: email }, { uid: uid }],
     },
     attributes: ["id", "email"],
   });
