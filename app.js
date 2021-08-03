@@ -24,10 +24,11 @@ app.use((req, res, next) => activateCors(req, res, next));
 //paths
 app.use("/auth", authRoute);
 app.use("/reset", resetRoute);
+app.use("/verify");
 //connect to database
 user.hasMany(referral);
 user.hasMany(pwReset);
-sequelize.sync().then(async (_) => {
+sequelize.sync({ alter: true }).then(async (_) => {
   await mongoose.connect(process.env.mongo);
   server.listen(4000);
   console.log("listening...");

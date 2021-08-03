@@ -53,7 +53,7 @@ const user = sequelize.define("user", {
     type: Sequelize.BOOLEAN,
     defaultValue: true,
   },
-  freeTriaLStartMillis: {
+  freeTrialStartMillis: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
   },
