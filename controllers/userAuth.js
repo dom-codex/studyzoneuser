@@ -5,6 +5,8 @@ const userDb = require("../models/user");
 const { Op } = require("sequelize");
 //helpers impor
 const addReferral = require("../helpers/addReferral");
+//mailer imports
+const mailer = require("../utils/mailer");
 exports.signUp = async (req, res, next) => {
   //retrieve input from body
   const {
@@ -47,14 +49,16 @@ exports.signUp = async (req, res, next) => {
   //handle referral
   if (referral) {
     const result = await addReferral(referral, user);
-    console.log(result);
     if (result) {
       //send email with activation code
-      //send success response to user
-      res.status(200).json({
-        code: 200,
-        message: "Account created successfully",
-      });
+      mailer.sendActivationaCode(
+        email,
+        activationCode, //send success response to user
+        res.status(200).json({
+          code: 200,
+          message: "Account created successfully",
+        })
+      );
     } else {
       await user.destroy();
 
@@ -65,11 +69,14 @@ exports.signUp = async (req, res, next) => {
     }
   } else {
     //send email with activation code
-    //send success response to user
-    res.status(200).json({
-      code: 200,
-      message: "Account created successfully",
-    });
+    mailer.sendActivationaCode(
+      email,
+      activationCode,
+      res.status(200).json({
+        code: 200,
+        message: "Account created successfully",
+      })
+    );
   }
 };
 //login controller

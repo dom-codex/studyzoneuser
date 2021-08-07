@@ -18,5 +18,13 @@ const referral = sequelize.define("Referral", {
     type: Sequelize.INTEGER,
     defaultValue: 0,
   },
+  canWithdraw: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+  },
+  amountToWithDraw: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0,
+  },
 });
 module.exports = referral;
