@@ -9,6 +9,7 @@ const referralList = require("./models/referralList");
 const pwReset = require("./models/passwordReset");
 const notification = require("./models/notifications");
 const db = require("./models/utils");
+const transaction = require("./models/transaction");
 
 //utils function imports
 const activateCors = require("./utils/cors");
@@ -19,6 +20,8 @@ const resetRoute = require("./router/reset");
 const verifyRoute = require("./router/verify");
 const notificationRoute = require("./router/notifications");
 const uploadRoute = require("./router/upload");
+const findRoute = require("./router/findRoute");
+const paymentRoute = require("./router/payment");
 //initialize express
 const app = express();
 //create server
@@ -34,12 +37,15 @@ app.use("/password", resetRoute);
 app.use("/verify", verifyRoute);
 app.use("/notifications", notificationRoute);
 app.use("/upload", uploadRoute);
+app.use("/find", findRoute);
+app.use("/pay", paymentRoute);
 //connect to database
 user.hasMany(referral);
 user.hasMany(pwReset);
 user.hasMany(notification);
 user.hasMany(referral);
-sequelize.sync().then(async (_) => {
+user.hasMany(transaction);
+sequelize.sync({ alter: true }).then(async (_) => {
   await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
   server.listen(4000);
