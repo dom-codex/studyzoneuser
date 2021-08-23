@@ -55,6 +55,10 @@ const user = sequelize.define("user", {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
   },
+  isBlocked: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+  },
   isLoggedIn: {
     type: Sequelize.BOOLEAN,
     defaultValue: false,

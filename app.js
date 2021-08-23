@@ -22,6 +22,7 @@ const notificationRoute = require("./router/notifications");
 const uploadRoute = require("./router/upload");
 const findRoute = require("./router/findRoute");
 const paymentRoute = require("./router/payment");
+const getRoute = require("./router/getRoute");
 //initialize express
 const app = express();
 //create server
@@ -39,13 +40,16 @@ app.use("/notifications", notificationRoute);
 app.use("/upload", uploadRoute);
 app.use("/find", findRoute);
 app.use("/pay", paymentRoute);
+app.use("/get", getRoute);
 //connect to database
 user.hasMany(referral);
 user.hasMany(pwReset);
 user.hasMany(notification);
 user.hasMany(referral);
+referral.belongsTo(user);
 user.hasMany(transaction);
-sequelize.sync({ alter: true }).then(async (_) => {
+transaction.belongsTo(user);
+sequelize.sync().then(async (_) => {
   await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
   server.listen(4000);
