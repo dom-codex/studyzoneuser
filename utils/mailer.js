@@ -28,8 +28,8 @@ exports.sendActivationaCode = async (email, code, finishSignUp) => {
     `,
   };
   transporter.sendMail(mailOptions, (err, info) => {
-    if (e) {
-      console.log(e);
+    if (err) {
+      console.log(err);
       return res.status(300).json({
         code: 300,
         message: "an error occurred",

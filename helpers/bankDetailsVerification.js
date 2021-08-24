@@ -2,23 +2,16 @@ const userDb = require("../models/user");
 const { Op } = require("sequelize");
 module.exports = async (req, res, next) => {
   try {
-    const { email, uid } = req.body;
+    const { uid } = req.body;
     //1. find user account
     const user = await userDb.findOne({
       where: {
-        [Op.and]: [
-          {
-            email: email,
-          },
-          {
-            uid: uid,
-          },
-        ],
+        uid: uid,
       },
-      attributes: ["id", "email", "bank", "accountNo"],
+      attributes: ["id", "bank", "accountNo"],
     });
     if (!user) {
-      res.status(404).json({
+      res.json({
         code: 404,
         message: "user not found",
       });
@@ -28,7 +21,7 @@ module.exports = async (req, res, next) => {
     req.user = user;
     next();
   } catch (e) {
-    res.status(404).json({
+    res.json({
       code: 404,
       message: "unknown error occured",
     });

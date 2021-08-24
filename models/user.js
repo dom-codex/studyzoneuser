@@ -12,10 +12,6 @@ const user = sequelize.define("user", {
     allowNull: false,
     //set maxlength later
   },
-  otherName: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
   phone: {
     type: Sequelize.STRING,
     allowNull: false,

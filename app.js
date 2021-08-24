@@ -49,7 +49,7 @@ user.hasMany(referral);
 referral.belongsTo(user);
 user.hasMany(transaction);
 transaction.belongsTo(user);
-sequelize.sync().then(async (_) => {
+sequelize.sync({ alter: true }).then(async (_) => {
   await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
   server.listen(4000);

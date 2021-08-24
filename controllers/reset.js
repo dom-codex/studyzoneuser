@@ -80,3 +80,34 @@ exports.changePassword = async (req, res, next) => {
     message: "password changed sucessfully",
   });
 };
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const { newPassword, oldPassword } = req.body;
+    const { user, canProceed } = req;
+    if (!canProceed) {
+      return res.json({
+        code: 400,
+        message: "cannot process request",
+      });
+    }
+    //verify oldPassword
+    const result = await bcrypt.compare(oldPassword, user.password);
+    if (!result) {
+      return res.json({
+        code: 400,
+        message: "invalid password",
+      });
+    }
+    //hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+    await user.save();
+    return res.status(200).json({
+      message: "success",
+      code: 200,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  }
+};

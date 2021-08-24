@@ -28,3 +28,49 @@ exports.findAUser = async (req, res, next) => {
     });
   }
 };
+exports.validateUser = async (req, res, next) => {
+  try {
+    const { user } = req.query;
+    const aUser = await userDb.findOne({
+      where: {
+        uid: user,
+      },
+      attributes: ["name", "id", "email", "phone", "referral"],
+    });
+    if (!user) {
+      return res.json({
+        code: 404,
+        message: "account not found",
+      });
+    }
+    req.user = aUser;
+    req.canProceed = true;
+    next();
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  }
+};
+exports.validateUserForPasswordUpdate = async (req, res, next) => {
+  try {
+    const { user } = req.body;
+    const aUser = await userDb.findOne({
+      where: {
+        uid: user,
+      },
+      attributes: ["id", "password"],
+    });
+    if (!aUser) {
+      return res.json({
+        code: 404,
+        message: "user not found",
+      });
+    }
+    req.user = aUser;
+    req.canProceed = true;
+    next();
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  }
+};
