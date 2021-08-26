@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "geo-search-257801",
+  "private_key_id": "2ee5e4b7bb739ae97c4b5fffe2966e1e31367863",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC72NBJCM6IsGhS\nNAkSpXQqaA4avi3a/SJvyDecq4ibOVvWOdmSmA4Fqnxsl6HTdboIPIQLkTVTKvtz\n/GxQjbL749lnA91Uu1zavdbpVzDf4KjHY/SncQt1u7lUpSpr6ejkFdRTQxEKZlUn\nXYEXMcOCTGrWxT+wfNJymb3tJYcrtYbV57xE1FmvfFwAhFjijh334PIG44P8KWKX\n/hmVwojO7+OMRVG3+g3ZDW1ruYzNCKcJO6FG/Z3kRfhoBFqPhD4DOfxfiw/fkqh0\nm407v4tLGPI/do7A1cIOX6teRER1VhE9f9BQnCDaLlzYGv0IqnQY6ScI85FMGVJX\n4NINpXVLAgMBAAECggEASihbfeGwq4y8+mrZhBd2Z0FiBBO9RZ02SZvovHyJdwIr\na8S1zKYjrv/xk+s+sxzgXt0JIgnm29j1oQHvftOZ69A1JPKFH6zCCQb1/3Nw84kd\nCG5BCRNbO1TrYuu7dhPHYbfudRpecVUZ2+sRiecW8GsbqIMBVDrK1/wy2xq8JLgc\nc085AUc3Yrld3zK/PaxeLHQVL5i6dMZJq6QZW2ROUMVyLZJWAgxPq2B0g+Upa+EF\nFjuRx+Nnq/4ZG/gD4moYSduh/6eJ9xz2Fv38oInwIvkngcVdNX0WXqq7b8zsFAg4\n9JZO/tlvbXIESWaqaw9Ev1ShjI4lcPXj5gYrQbikgQKBgQD1Nz6J7wZZxB5MqUDn\nPPbgL0AmOAc8bNWmT3+6RXGeWtutakSEt3cOqaNVDgoC62945XQiU7h/bPc7tNcl\nswZagiPdd+NSm6T3MQtf5INRFwyav8p6CUpRBxZytlF/7SsLmmWoNgBL2v3uZ9fQ\ndnpqU134hyBqFVHQMlP4dUJRywKBgQDEG67yf+oLZddaVPyLUwYJ2m+c/puqsdFI\n3MwdY/rqCX7w3W7Ro4iBiSr1VJSyN2ugH7nSQkg3J36TrQkkUCppBgHfaG3asg/Y\nyyn9GVkusRWX8EPV9N0wEoU5/xeVANct+sa6l9JS/y9OWdTmVNqJBWo+VPIRsmt/\nyueG5s76gQKBgB4imebtnwQtG+Qj8Lv6PAS1Cdcoj4sXfPIhVvsXSa1CUTjwlFcT\nDOiaZF4xiX1uXZan7CvDyiquw3ts7/vMEn3Q/INdFmyygAV424L/XDv87ymdZE63\nEZD/o/yY908XYHDempufd03bLdW8oUMXLFggwq2mPY+L6zAA31zrXCkdAoGAFr6j\nNsrxKStBo99xfvM9Iw1rnojFIzIGdO3u2oXLBzPcvjDgdn4CCgwPqG6L5HObDvI/\nCgzX9VWmT5hlFAocMRwaQYAKJbA7OEiv8QPsnQa622lpZLpGoRm0y/ozEPwM+O85\n91A+e5PPN8YhdClpQzUWkm4luTm5UBQHcFT6soECgYAmGlMSnDb7GBt2T0Hwg1gt\nmcXpBl4zHWbxBGNaq2PH5lFqNPARRQEVUqKIA1AEXauF+FGhaw4hkZjUY6atE9iu\nXwZCAGUe/hhTTzsUpT7fjMVw3C/NDld555rkLue5WOnnlgOYLlIx4276jOPL+tXo\n+AZT9TiQL2nGw654t1PKfw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "studyzonetest@geo-search-257801.iam.gserviceaccount.com",
+  "client_id": "100228387531465534551",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/studyzonetest%40geo-search-257801.iam.gserviceaccount.com"
+}

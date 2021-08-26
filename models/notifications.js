@@ -5,12 +5,16 @@ const notification = sequelize.define("notification", {
     type: Sequelize.STRING,
     defaultValue: "",
   },
+  subject: {
+    type: Sequelize.STRING,
+  },
   isOpened: {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
   },
-  deliveryTime: {
-    type: Sequelize.DATE,
+  notificationId: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
   },
 });
 module.exports = notification;

@@ -74,3 +74,25 @@ exports.validateUserForPasswordUpdate = async (req, res, next) => {
     res.status(500);
   }
 };
+exports.validateUserOnPostRequest = async (req, res, next) => {
+  try {
+    const { user } = req.body;
+    const auser = await userDb.findOne({
+      where: {
+        uid: user,
+      },
+      attributes: ["name", "email", "uid"],
+    });
+    if (!auser) {
+      return res.json({
+        code: 404,
+        message: "user does not exist",
+      });
+    }
+    req.user = auser;
+    next();
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  }
+};

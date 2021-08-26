@@ -23,13 +23,14 @@ const uploadRoute = require("./router/upload");
 const findRoute = require("./router/findRoute");
 const paymentRoute = require("./router/payment");
 const getRoute = require("./router/getRoute");
+const withdrawalRoute = require("./router/withdrawalrequest");
 //initialize express
 const app = express();
 //create server
 const server = http.createServer(app);
 //init server with body parser
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 //set up cors
 app.use((req, res, next) => activateCors(req, res, next));
 //paths
@@ -41,6 +42,7 @@ app.use("/upload", uploadRoute);
 app.use("/find", findRoute);
 app.use("/pay", paymentRoute);
 app.use("/get", getRoute);
+app.use("/withdrawal", withdrawalRoute);
 //connect to database
 user.hasMany(referral);
 user.hasMany(pwReset);
