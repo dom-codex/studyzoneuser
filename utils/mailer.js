@@ -122,7 +122,7 @@ const MailMessenger = (mailOptions,cb)=>{
   const transporter = mailer.createTransport({
     service: "gmail",
     ignoreTLS:false,
-    secure:false
+    secure:false,
     auth: {
       user: "sumomessenger.beta@gmail.com",
       pass:"compressor",
