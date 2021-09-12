@@ -1,13 +1,39 @@
 const mailer = require("nodemailer");
-exports.sendActivationaCode = async (email, code, finishSignUp) => {
-  //create transporter
-  const transporter = mailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "sumomessenger.beta@gmail.com",
-      pass: process.env.mailer,
-    },
-  });
+exports.sendResetToken = (email,token,res)=>{
+  const mailOptions = {
+    from: "studyzone Admin",
+    to: email,
+    subject: "Email Verification",
+    html: `
+     <!DOCTYPE html>
+      <html>
+      <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body>
+      Your reset token is
+      <p>${token}</p>
+      </body>
+      </html>
+
+    `,
+  };
+  const cb = (err)=>{
+    if(err){
+      return res.status(500).json({
+        code:500,
+        message:"an error occurred"
+      })
+    }
+    res.status(200).json({
+      code: 200,
+      message: "check your email for reset token",
+    });
+  }
+  MailMessenger(mailOptions,cb)
+}
+exports.sendActivationaCode = async (email, code,data,res,user) => {
   const mailOptions = {
     from: "studyzone Admin",
     to: email,
@@ -27,14 +53,80 @@ exports.sendActivationaCode = async (email, code, finishSignUp) => {
     <
     `,
   };
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.log(err);
-      return res.status(300).json({
-        code: 300,
+  const callback = async(e)=>{
+    if (e) {
+      console.log(e);
+      await user.destroy()
+      return res.status(401).json({
+        code: 401,
         message: "an error occurred",
       });
     }
-    finishSignUp();
-  });
+    return res.status(200).json({
+      code:200,
+      message:"created",
+      user:data
+    })
+  }
+  MailMessenger(mailOptions,callback)
 };
+exports.sendEmailToAdmin = async (
+  { name, email, phone, subject, description, user },
+  res
+) => {
+  try {
+
+    const mailOptions = {
+      from: "studyzone Admin",
+      to: "sumomessenger.beta@gmail.com",
+      subject: "Support",
+      html: `
+     <!DOCTYPE html>
+      <html>
+      <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body>
+      <p>Sender:${name}</p>
+      <p>Email:${email}</p>
+      <p>Phone:${phone}</p>
+      <p>Subject:${subject}</p>
+      <p>UserId:${user}</p>
+      <p>PROBLEM DESCRIPTION</p>
+      <p>${description}</p>
+      </body>
+      </html>
+    <
+    `,
+    };
+    const callback = (err)=>{
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          code: 500,
+          message: "an error occurred",
+        });
+      }
+      res.status(200).json({
+        code: 200,
+        message: "sent",
+      });
+    }
+    MailMessenger(mailOptions,callback)
+  } catch (e) {
+    console.log(e);
+  }
+};
+const MailMessenger = (mailOptions,cb)=>{
+  const transporter = mailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "sumomessenger.beta@gmail.com",
+      pass:"compressor",
+    },
+  });
+  transporter.sendMail(mailOptions, (err, info) => {
+cb(err)
+  });
+}

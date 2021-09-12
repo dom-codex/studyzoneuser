@@ -18,7 +18,8 @@ exports.createTransaction = async (incomingData) => {
     TxId,
   } = incomingData;
   const studyTxId = nanoid();
-  const transaction = await transactionDb.create({
+
+  const transaction = await transactionDb.build({
     title: title,
     userEmail: email,
     transactionRef: TxId ? TxId : null,
@@ -43,7 +44,6 @@ exports.createTransaction = async (incomingData) => {
     trf: transaction.transactionRef,
     title: title,
     email: email,
-    time: null,
     semester: transaction.semester,
     paymentMethod: transaction.paymentMethod,
     userTxId: studyTxId,

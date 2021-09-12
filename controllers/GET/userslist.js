@@ -13,7 +13,7 @@ module.exports = async (req, res, next) => {
     const { page } = req.query;
     /*  switch (type) {
       case "all":*/
-    const userInfo = await userDb.findAll({
+    const userInfo = await fetchusersInCategory(req) /* await userDb.findAll({
       limit: limit,
       offset: limit * page,
       attributes: [
@@ -26,8 +26,9 @@ module.exports = async (req, res, next) => {
         "accountNo",
         "isActivated",
         "isLoggedIn",
+        "isBlocked",
       ],
-    });
+    });*/
     //extract ids
     const userIds = extractids(userInfo);
     //retrieve referralInfo
@@ -62,56 +63,6 @@ module.exports = async (req, res, next) => {
       code: 200,
       message: "success",
     });
-    /*  break;
-      case "activated":
-        const activateduserInfo = await userDb.findAll({
-          limit: limit,
-          offset: limit * page,
-          where: {
-            isActivated: true,
-            isBlocked: false,
-          },
-          attributes: ["name", "email", "phone", "uid", "bank", "accountNo"],
-        });
-        res.status(200).json({
-          code: 200,
-          users: activatedusers,
-          message: "success",
-        });
-        break;
-      case "blocked":
-        const blockedusers = await userDb.findAll({
-          where: {
-            isBlocked: true,
-          },
-          limit: limit,
-          offset: limit * page,
-          attributes: ["name", "email", "phone", "uid", "bank", "accountNo"],
-        });
-        res.status(200).json({
-          code: 200,
-          users: blockedusers,
-          message: "success",
-        });
-        break;
-      case "notActivated":
-        const notactivatedusers = await userDb.findAll({
-          where: {
-            isActivated: false,
-          },
-          limit: limit,
-          offset: limit * page,
-          attributes: ["name", "email", "phone", "uid", "bank", "accountNo"],
-        });
-        res.status(200).json({
-          code: 200,
-          users: notactivatedusers,
-          message: "success",
-        });
-        break;
-      default:
-        break;
-    }*/
   } catch (e) {
     console.log(e);
     res.status(500).json({
@@ -120,3 +71,47 @@ module.exports = async (req, res, next) => {
     });
   }
 };
+console.log("called")
+const getCondition = (category)=>{
+  if(category=="ACTIVATED"){
+    return {
+      isActivated:true,
+      isBlocked:false
+    }
+  }else if(category == "NOT_ACTIVATED"){
+    return {
+      isActivated:false,
+      isBlocked:false
+    }
+  }  else if (category == "BLOCKED") {
+      return {
+        isBlocked:true
+      }
+    }
+      else{
+        return {}
+      }
+}
+const fetchusersInCategory = (req)=>{
+  //validate calls
+  const limit = 1;
+  const { page,category } = req.query;
+  const where = getCondition(category)
+  return  userDb.findAll({
+    limit: limit,
+    where:where,
+    offset: limit * page,
+    attributes: [
+      "id",
+      "name",
+      "email",
+      "phone",
+      "uid",
+      "bank",
+      "accountNo",
+      "isActivated",
+      "isLoggedIn",
+      "isBlocked",
+    ],
+  });
+}

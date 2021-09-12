@@ -12,7 +12,7 @@ exports.signUp = async (req, res, next) => {
     //retrieve input from body
     const { firstName, email, phone, deviceId, password, referral } = req.body;
     if (!req.canCreate) {
-      return res.json({
+      return res.status(400).json({
         code: 400,
         message: "cannot create account",
       });
@@ -37,7 +37,7 @@ exports.signUp = async (req, res, next) => {
     });
     //check if creation is successful or not
     if (user == null) {
-      return res.json({
+      return res.status(400).json({
         code: 400,
         message: "An error occurred try again",
       });
@@ -50,20 +50,19 @@ exports.signUp = async (req, res, next) => {
         mailer.sendActivationaCode(
           email,
           activationCode, //send success response to user
-          res.status(200).json({
-            code: 200,
-            message: "Account created successfully",
-            user: {
-              name: user.name,
-              email: user.email,
-              uid: user.uid,
-            },
-          })
+           {
+            name: user.name,
+            email: user.email,
+            phone:user.phone,
+            uid: user.uid,
+          },
+          res
+          ,user
         );
       } else {
         await user.destroy();
 
-        res.json({
+        res.status(400).json({
           code: 400,
           message: "An error occurred try again",
         });
@@ -73,38 +72,56 @@ exports.signUp = async (req, res, next) => {
       mailer.sendActivationaCode(
         email,
         activationCode,
-        res.status(200).json({
-          code: 200,
-          message: "Account created successfully",
-          user: {
-            name: user.name,
-            email: user.email,
-            uid: user.uid,
-          },
-        })
+         {
+          name: user.name,
+          email: user.email,
+          phone:user.phone,
+          uid: user.uid,
+        },
+        res,
+        user
       );
     }
   } catch (e) {
     console.log(e);
-    res.status(500);
-  }
-};
-//login controller
-exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
-  //find user
-  const user = await userDb.findOne({
-    where: {
-      email: email,
-    },
-    attributes: ["id", "email", "isLoggedIn", "password"],
-  });
-  if (!user) {
-    return res.status(404).json({
-      code: 404,
-      message: "invalid email or password",
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
     });
   }
+};
+//login controller#
+exports.logout = async(req,res,next)=>{
+  try{
+    const {email,deviceId} = req.body
+    const user = await userDb.findOne({
+      where:{
+        [Op.and]:[{email:email},{deviceId:deviceId}]
+      },
+      attribute:["id","isLoggedIn"]
+    })
+    if(!user){
+      return res.status(404).json({
+        code:404,
+        message:"user not found"
+      })
+    }
+    user.isLoggedIn = false
+    await user.save()
+    res.status(200).json({
+      code:200,
+      message:"logged out"
+    })
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
+    })
+  }
+}
+exports.login = async (req, res, next) => {
+  const { email, password,deviceId } = req.body;
   const canlogin = req.canLogin;
   if (!canlogin) {
     return res.status(404).json({
@@ -112,9 +129,14 @@ exports.login = async (req, res, next) => {
       message: "invalid email or password",
     });
   }
-  //check password again
-  const result = await bcyrpt.compare(password, user.password);
-  if (!result) {
+  //find user
+  const user = await userDb.findOne({
+    where: {
+      [Op.and]:[{email:email},{deviceId:deviceId}]
+    },
+    attributes: ["id","name","email", "isLoggedIn","uid","phone","isActivated","isBlocked"],
+  });
+  if (!user) {
     return res.status(404).json({
       code: 404,
       message: "invalid email or password",
@@ -125,6 +147,7 @@ exports.login = async (req, res, next) => {
   res.status(200).json({
     code: 200,
     message: "logged in",
+    user:user.dataValues
   });
 };
 //account activation controller
@@ -185,4 +208,32 @@ exports.activateAccount = async (req, res, next) => {
     console.log(e);
     res.status(500);
   }
+};
+exports.toggleUserStatus = async (req, res, next) => {
+  try {
+    const { user, block } = req.body;
+    //find user
+    const User = await userDb.findOne({
+      where: {
+        uid: user,
+      },
+      attributes: ["id", "uid"],
+    });
+    if (!User) {
+      return res.status(404).json({
+        code: 404,
+        message: "user not found",
+      });
+    }
+    //update block status
+    User.isBlocked = block;
+    await User.save();
+    //send socketnotification to user r kick them out if received and block is true
+    //send mail to user based on block status
+    //send response
+    res.status(200).json({
+      code: 200,
+      message: "operation succesful",
+    });
+  } catch (e) {}
 };

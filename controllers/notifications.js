@@ -30,3 +30,38 @@ exports.getAllNotifications = async (req, res, next) => {
     notifications: notifications,
   });
 };
+exports.processNotificationFromAdmin = async (req, res, next) => {
+  try {
+    const { canProceed, user } = req;
+    const { message, subject } = req.body;
+    if (!canProceed) {
+      return res.status(404).json({
+        code: 404,
+        message: "user not found",
+      });
+    }
+    //create new notification with user details
+    const newNotification = await notifyDb.create({
+      message: message,
+      subject: subject,
+      userId: user.id,
+    });
+    //send socket event to user
+    //change read status if received
+    //send response to user
+    if (newNotification != null) {
+      return res.status(201).json({
+        code: 201,
+        message: "notification sent",
+      });
+    } else {
+      return res.status(400).json({
+        code: 400,
+        message: "notification not sent",
+      });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+};

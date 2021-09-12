@@ -92,7 +92,7 @@ exports.validateKeyPaymentDetails = async (req, res, next) => {
       });
     }
     //create download slug
-    const slugResult = await axios.post(process.env.createSlug, {
+    /* const slugResult = await axios.post(process.env.createSlug, {
       uid: uid,
       email: email,
       deviceId: deviceId,
@@ -101,7 +101,7 @@ exports.validateKeyPaymentDetails = async (req, res, next) => {
       dept: dept,
       lev: lev,
       ref: transaction.TxId,
-    });
+    });*/
     if (!slugResult.data.isValid) {
       await axios.post(process.env.deleteTransaction);
       await transaction.destroy();

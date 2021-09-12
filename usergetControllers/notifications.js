@@ -1,5 +1,6 @@
 const notificationDb = require("../models/notifications");
-module.exports = async (req, res, next) => {
+const axios = require("axios")
+exports.getNotifications = async (req, res, next) => {
   try {
     const { user, canProceed } = req;
     const { page } = req.query;
@@ -33,3 +34,20 @@ module.exports = async (req, res, next) => {
     console.log(e);
   }
 };
+exports.getAnnouncements = async(req,res,next)=>{
+  try{
+    const {page} = req.query
+    const uri = `${process.env.centralBase}/notification/get/announcements?page=${page}`
+    const {data} = await axios.get(uri)
+    return res.status(200).json({
+      code:200,
+      announcements:data.announcements
+    })
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
+    })
+  }
+}

@@ -35,7 +35,15 @@ exports.validateUser = async (req, res, next) => {
       where: {
         uid: user,
       },
-      attributes: ["name", "id", "email", "phone", "referral"],
+      attributes: [
+        "name",
+        "id",
+        "email",
+        "phone",
+        "referral",
+        "freeTrialOn",
+        "uid",
+      ],
     });
     if (!user) {
       return res.json({
@@ -48,7 +56,7 @@ exports.validateUser = async (req, res, next) => {
     next();
   } catch (e) {
     console.log(e);
-    res.status(500);
+    res.status(500).end();
   }
 };
 exports.validateUserForPasswordUpdate = async (req, res, next) => {
@@ -61,7 +69,7 @@ exports.validateUserForPasswordUpdate = async (req, res, next) => {
       attributes: ["id", "password"],
     });
     if (!aUser) {
-      return res.json({
+      return res.status(404).json({
         code: 404,
         message: "user not found",
       });
@@ -71,7 +79,7 @@ exports.validateUserForPasswordUpdate = async (req, res, next) => {
     next();
   } catch (e) {
     console.log(e);
-    res.status(500);
+    res.status(500).end();
   }
 };
 exports.validateUserOnPostRequest = async (req, res, next) => {
@@ -81,18 +89,79 @@ exports.validateUserOnPostRequest = async (req, res, next) => {
       where: {
         uid: user,
       },
-      attributes: ["name", "email", "uid"],
+      attributes: ["id", "name", "email", "uid"],
     });
     if (!auser) {
-      return res.json({
+      return res.status(404).json({
         code: 404,
         message: "user does not exist",
       });
     }
     req.user = auser;
+    req.canProceed = true;
     next();
   } catch (e) {
     console.log(e);
-    res.status(500);
+    res.status(500).end();
   }
 };
+exports.validateUserForPayment = async (req, res, next) => {
+  try {
+    const { uid, deviceId } = req.body;
+    const auser = await userDb.findOne({
+      where: {
+        [Op.and]: [{ uid: uid }, { deviceId: deviceId }],
+      },
+      attributes: ["id", "name", "email", "uid","freeTrialOn","freeTrialEndMillis","freeTrialStartMillis"],
+    });
+    if (!auser) {
+      return res.status(404).json({
+        code: 404,
+        message: "user does not exist",
+      });
+    }
+    req.user = auser;
+    req.canProceed = true;
+    next();
+  } catch (e) {
+    console.log(e);
+    res.status(500).end();
+  }
+};
+exports.validateUserDeviceAndStatus= async(req,res,next)=>{
+  try{
+    const {deviceId,email,userId} = req.body
+
+    const user = await userDb.findOne({
+      where:{
+        [Op.and]:[
+          {email:email},
+          {deviceId:deviceId},
+          {uid:userId}
+        ]
+      }
+    })
+    if(!user){
+      return res.status(404).json({
+        code:404,
+        message:"account does not exist"
+      })
+    }
+    if(!user.isLoggedIn){
+      return status(401).json({
+        code:401,
+        message:"user not logged in"
+      })
+    }
+    res.status(200).json({
+      code:200,
+      message:"validated"
+    })
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
+    })
+  }
+}
