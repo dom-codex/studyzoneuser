@@ -121,11 +121,9 @@ exports.sendEmailToAdmin = async (
 const MailMessenger = (mailOptions,cb)=>{
   const transporter = mailer.createTransport({
     service: "gmail",
-    ignoreTLS:false,
-    secure:false,
     auth: {
       user: "sumomessenger.beta@gmail.com",
-      pass:"compressor",
+      pass:"xbcfbsmwhdhcyniq",
     },
   });
   transporter.sendMail(mailOptions, (err, info) => {
