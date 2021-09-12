@@ -67,7 +67,7 @@ downloads.belongsTo(user);
 sequelize.sync({ alter: true }).then(async (_) => {
 //  await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
-  server.listen(4000);
+  server.listen(process.env.PORT!=null?process.env.PORT:4000);
   io.init(server);
   io.getIO().once("connect",(socket)=>{
     console.log("connected");
