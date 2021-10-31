@@ -73,6 +73,10 @@ exports.newAnnouncement = async (req, res, next) => {
   try {
     const { announcement } = req.body;
     IO.getIO().emit("announcement", announcement);
+    res.status(200).json({
+      code:200,
+      message:"sent"
+    })
   } catch (e) {
     console.log(e);
   }
