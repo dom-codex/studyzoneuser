@@ -10,6 +10,9 @@ module.exports = sequelize.define("download", {
   fileName: {
     type: Sequelize.STRING,
   },
+  cloudUri:{
+    type:Sequelize.STRING
+  },
   slug: {
     type: Sequelize.STRING,
     allowNull: false,

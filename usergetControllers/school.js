@@ -129,6 +129,7 @@ exports.getPastquestions = async (req, res, next) => {
     let hasPaid = paymentHistory == null ? false : true;
     const freetrialstatusUri = `${process.env.centralBase}/get/freetrial/status`
     const freetrialstatus = await axios.get(freetrialstatusUri)
+
     if (!hasPaid) {
       return res.status(200).json({
         code: 200,
@@ -144,6 +145,7 @@ exports.getPastquestions = async (req, res, next) => {
       user: user.uid,
       transactionId: paymentHistory.TxId,
     });
+
     res.status(200).json({
       code: 200,
       pastquestions: data.pastquestions,

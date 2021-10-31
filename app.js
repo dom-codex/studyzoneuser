@@ -29,7 +29,9 @@ const getRoute = require("./router/getRoute");
 const withdrawalRoute = require("./router/withdrawalrequest");
 const downloadRoute = require("./router/download");
 const chatRoute = require("./router/chat");
-const supportRoute = require("./router/supportRoute")
+const supportRoute = require("./router/supportRoute");
+const searchRouter = require("./router/search");
+const refferalList = require("./models/referralList");
 //initialize express
 const app = express();
 //create server
@@ -53,39 +55,47 @@ app.use("/get", getRoute);
 app.use("/withdrawal", withdrawalRoute);
 app.use("/download", downloadRoute);
 app.use("/chat", chatRoute);
-app.use("/support",supportRoute)
+app.use("/support", supportRoute);
+app.use("/search", searchRouter);
 //connect to database
-user.hasMany(referral);
+//user.hasMany(referral, { onDelete: "CASCADE" });
+user.hasMany(refferalList, { foreignKey: "referred", onDelete: "CASCADE" });
+referralList.belongsTo(user);
 user.hasMany(pwReset);
 user.hasMany(notification);
-user.hasMany(referral);
+user.hasMany(referral, { onDelete: "CASCADE" });
 referral.belongsTo(user);
 user.hasMany(transaction);
 transaction.belongsTo(user);
 user.hasMany(downloads);
 downloads.belongsTo(user);
-sequelize.sync().then(async (_) => {
-//  await mongoose.connect(process.env.mongo);
+sequelize.sync({ alter: true }).then(async (_) => {
+  //  await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
   server.listen(process.env.PORT);
   io.init(server);
-  io.getIO().once("connect",(socket)=>{
+  io.getIO().once("connect", (socket) => {
     console.log("connected");
-    //join listener
-    socket.on("joinAdminGroup",(room)=>{
-      //join group  chat with admin
-      console.log("joining")
-      socket.join(room)
+    //activity listeners
+    socket.on("joinRealTimeChannel",(data)=>{
+      const sentData = JSON.parse(data)
+      socket.join(data.userId)
     })
+    //join listener
+    socket.on("joinAdminGroup", (room) => {
+      //join group  chat with admin
+      console.log("joining");
+      socket.join(room);
+    });
     socket.on("joinGroup", (data) => {
       const sentData = JSON.parse(data);
       socket.join(sentData.department);
       //emit to other users that a new user has joined
-      socket.broadcast.to(room).emit("newUserJoined", {
+      socket.broadcast.to(sentData.department).emit("newUserJoined", {
         sender: sentData.sender,
         name: sentData.name,
       });
     });
-  })
+  });
   console.log("listening...");
 });

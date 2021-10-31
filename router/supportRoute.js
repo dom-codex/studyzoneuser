@@ -13,4 +13,10 @@ router.post(
   supportController.sendChatToAdmin
 );
 router.post("/send/message/to/user", supportController.receiveMessageFromAdmin);
+router.post(
+  "/send/chat/media",
+  supportController.imageUploader,
+  validator.validateUserOnPostRequest,
+  supportController.sendMediaMessageToAdmin
+);
 module.exports = router;

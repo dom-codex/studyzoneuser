@@ -4,11 +4,11 @@ module.exports = sequelize.define("chat", {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
-    allowNull: true,
+    allowNull: false,
     autoIncrement: true,
   },
   message: {
-    type: Sequelize.STRING(1000),
+    type: Sequelize.STRING(1000000),
     allowNull: false,
   },
   time: {
@@ -29,6 +29,9 @@ module.exports = sequelize.define("chat", {
     defaultValue: Sequelize.UUIDV4(),
   },
   group: {
+    type: Sequelize.STRING,
+  },
+  messageType: {
     type: Sequelize.STRING,
   },
 });

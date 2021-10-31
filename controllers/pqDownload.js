@@ -6,11 +6,12 @@ const userDb = require("../models/user");
 const { Op } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
+const cloudinary = require("cloudinary");
 //const slugDb = require("../models/slug")
 exports.prepareDownloads = async (req, res, next) => {
   try {
     const { user } = req;
-    const { sch, faculty, department, level, semester,pid } = req.body;
+    const { sch, faculty, department, level, semester, pid } = req.body;
     //check if free trial is turned on by admin
     //retrieve past questions from admin db
     //send past question name and total number as response
@@ -21,7 +22,7 @@ exports.prepareDownloads = async (req, res, next) => {
       fid: faculty,
       did: department,
       lid: level,
-      pid:pid,
+      pid: pid,
       sem: semester,
     });
     if (data.code != 200) {
@@ -36,18 +37,19 @@ exports.prepareDownloads = async (req, res, next) => {
       data.pastquestions,
       user.id
     );*/
-    const nanoid = require("nanoid").nanoid
+    console.log(data,"DATAS");
+    const nanoid = require("nanoid").nanoid;
     const slug = await downloadDb.create({
-       slug:nanoid(),
-       pastQuestion: data.pastquestion.pid,
-       fileName:data.pastquestion.fileName,
-       userId: user.id,
-
-    })
+      slug: nanoid(),
+      pastQuestion: data.pastquestion.pid,
+      fileName: data.pastquestion.fileName,
+      userId: user.id,
+      cloudUri: data.pastquestion.cloudUri,
+    });
     return res.status(200).json({
       code: 200,
       message: "success",
-      file: slug
+      file: slug,
     });
   } catch (e) {
     console.log(e);
@@ -60,9 +62,9 @@ exports.downloadPastQuestion = async (req, res, next) => {
     const userOne = await userDb.findOne({
       where: {
         [Op.and]: [
-          {
-            deviceId: deviceId,
-          },
+        //  {
+          //  deviceId: deviceId,
+          //},
           {
             uid: user,
           },
@@ -75,6 +77,7 @@ exports.downloadPastQuestion = async (req, res, next) => {
         "freeTrialEndMillis",
       ],
     });
+
     if (!userOne) {
       return res.status(404).json({
         code: 404,
@@ -93,19 +96,27 @@ exports.downloadPastQuestion = async (req, res, next) => {
         message: "invalid url",
       });
     }
+
     //initiate download
-    const cloud = new Storage({ keyFilename: "key.json" });
+    //  const cloud = new Storage({ keyFilename: "key.json" });
     const filePath = path.join(
       __dirname,
       "..",
       "downloads",
       `${file.fileName}`
     );
-    const result = await cloud
+    /*const result = await cloud
       .bucket("studyzonespark")
       .file(file.fileName)
       .download({ destination: filePath });
+*/
+    const response = await axios({
+      url: `${process.env.centralBase}/uploads/${file.cloudUri}`,
+      method: "GET",
+      responseType: "stream",
+    });
 
+    response.data.pipe(fs.createWriteStream(filePath));
     const stream = fs.createReadStream(filePath);
     stream.pipe(res).once("close", async () => {
       stream.destroy();

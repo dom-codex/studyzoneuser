@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 const addReferral = require("../helpers/addReferral");
 //mailer imports
 const mailer = require("../utils/mailer");
+const IO = require("../socket");
 exports.signUp = async (req, res, next) => {
   try {
     //retrieve input from body
@@ -50,14 +51,14 @@ exports.signUp = async (req, res, next) => {
         mailer.sendActivationaCode(
           email,
           activationCode, //send success response to user
-           {
+          {
             name: user.name,
             email: user.email,
-            phone:user.phone,
+            phone: user.phone,
             uid: user.uid,
           },
-          res
-          ,user
+          res,
+          user
         );
       } else {
         await user.destroy();
@@ -72,10 +73,10 @@ exports.signUp = async (req, res, next) => {
       mailer.sendActivationaCode(
         email,
         activationCode,
-         {
+        {
           name: user.name,
           email: user.email,
-          phone:user.phone,
+          phone: user.phone,
           uid: user.uid,
         },
         res,
@@ -85,43 +86,43 @@ exports.signUp = async (req, res, next) => {
   } catch (e) {
     console.log(e);
     res.status(500).json({
-      code:500,
-      message:"an error occurred"
+      code: 500,
+      message: "an error occurred",
     });
   }
 };
 //login controller#
-exports.logout = async(req,res,next)=>{
-  try{
-    const {email,deviceId} = req.body
+exports.logout = async (req, res, next) => {
+  try {
+    const { email, deviceId } = req.body;
     const user = await userDb.findOne({
-      where:{
-        [Op.and]:[{email:email},{deviceId:deviceId}]
+      where: {
+        [Op.and]: [{ email: email }, { deviceId: deviceId }],
       },
-      attribute:["id","isLoggedIn"]
-    })
-    if(!user){
+      attribute: ["id", "isLoggedIn"],
+    });
+    if (!user) {
       return res.status(404).json({
-        code:404,
-        message:"user not found"
-      })
+        code: 404,
+        message: "user not found",
+      });
     }
-    user.isLoggedIn = false
-    await user.save()
+    user.isLoggedIn = false;
+    await user.save();
     res.status(200).json({
-      code:200,
-      message:"logged out"
-    })
-  }catch(e){
-    console.log(e)
+      code: 200,
+      message: "logged out",
+    });
+  } catch (e) {
+    console.log(e);
     res.status(500).json({
-      code:500,
-      message:"an error occurred"
-    })
+      code: 500,
+      message: "an error occurred",
+    });
   }
-}
+};
 exports.login = async (req, res, next) => {
-  const { email, password,deviceId } = req.body;
+  const { email, password, deviceId } = req.body;
   const canlogin = req.canLogin;
   if (!canlogin) {
     return res.status(404).json({
@@ -132,9 +133,18 @@ exports.login = async (req, res, next) => {
   //find user
   const user = await userDb.findOne({
     where: {
-      [Op.and]:[{email:email},{deviceId:deviceId}]
+      [Op.and]: [{ email: email }, { deviceId: deviceId }],
     },
-    attributes: ["id","name","email", "isLoggedIn","uid","phone","isActivated","isBlocked"],
+    attributes: [
+      "id",
+      "name",
+      "email",
+      "isLoggedIn",
+      "uid",
+      "phone",
+      "isActivated",
+      "isBlocked",
+    ],
   });
   if (!user) {
     return res.status(404).json({
@@ -147,7 +157,7 @@ exports.login = async (req, res, next) => {
   res.status(200).json({
     code: 200,
     message: "logged in",
-    user:user.dataValues
+    user: user.dataValues,
   });
 };
 //account activation controller
@@ -230,10 +240,13 @@ exports.toggleUserStatus = async (req, res, next) => {
     await User.save();
     //send socketnotification to user r kick them out if received and block is true
     //send mail to user based on block status
-    //send response
-    res.status(200).json({
-      code: 200,
-      message: "operation succesful",
+    mailer.NotifyUserOfBlockStatus(() => {
+      IO.getIO().to(user).emit("blocked");
+      res.status(200).json({
+        code: 200,
+        message: "operation succesful",
+      });
     });
+    //send response
   } catch (e) {}
 };

@@ -13,10 +13,11 @@ const refferalList = sequelize.define("referralList", {
   referred: {
     type: Sequelize.INTEGER,
     allowNull: false,
-    references: {
+    /*references: {
       model: user,
       key: "id",
-    },
+      onDelete: "CASCADE",
+    },*/
   },
 });
 module.exports = refferalList;

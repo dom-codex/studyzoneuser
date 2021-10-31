@@ -1,5 +1,6 @@
 const notifyDb = require("../models/notifications");
 const userDb = require("../models/user");
+const IO = require("../socket");
 exports.getAllNotifications = async (req, res, next) => {
   const { email, uid } = req.body;
   const { page } = req.query;
@@ -50,6 +51,9 @@ exports.processNotificationFromAdmin = async (req, res, next) => {
     //change read status if received
     //send response to user
     if (newNotification != null) {
+      IO.getIO()
+        .to(user.uid)
+        .emit("incomingNotification", { ...newNotification.dataValues });
       return res.status(201).json({
         code: 201,
         message: "notification sent",
@@ -63,5 +67,13 @@ exports.processNotificationFromAdmin = async (req, res, next) => {
   } catch (e) {
     console.log(e);
     res.status(500).end();
+  }
+};
+exports.newAnnouncement = async (req, res, next) => {
+  try {
+    const { announcement } = req.body;
+    IO.getIO().emit("announcement", announcement);
+  } catch (e) {
+    console.log(e);
   }
 };

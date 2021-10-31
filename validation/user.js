@@ -1,5 +1,7 @@
 const userDb = require("../models/user");
 const { Op } = require("sequelize");
+const path = require("path");
+const fs = require("fs");
 exports.findAUser = async (req, res, next) => {
   const { email, uid, deviceId } = req.body;
   try {
@@ -82,16 +84,32 @@ exports.validateUserForPasswordUpdate = async (req, res, next) => {
     res.status(500).end();
   }
 };
+const deleteFile = (fileName, cb) => {
+  fs.unlink(`./uploads/${fileName}`, (e) => {
+    cb();
+  });
+};
 exports.validateUserOnPostRequest = async (req, res, next) => {
   try {
     const { user } = req.body;
+    const { fileName } = req;
+    const pathTofile = path.join(`./uploads/${fileName}`);
+    console.log(req.body);
     const auser = await userDb.findOne({
       where: {
-        uid: user,
+        uid: user ? user : JSON.parse(req.body.data).user,
       },
       attributes: ["id", "name", "email", "uid"],
     });
     if (!auser) {
+      if (fileName) {
+        return deleteFile(pathTofile, () => {
+          return res.status(404).json({
+            code: 404,
+            message: "user does not exist",
+          });
+        });
+      }
       return res.status(404).json({
         code: 404,
         message: "user does not exist",
@@ -101,8 +119,21 @@ exports.validateUserOnPostRequest = async (req, res, next) => {
     req.canProceed = true;
     next();
   } catch (e) {
-    console.log(e);
-    res.status(500).end();
+    const { fileName } = req;
+    const pathTofile = path.join(`./uploads/${fileName}`);
+    if (fileName) {
+      deleteFile(pathTofile, () => {
+        console.log(e);
+        return res.status(500).json({
+          code: 500,
+          message: "error",
+        });
+      });
+    }
+    res.status(500).json({
+      code: 500,
+      message: "error",
+    });
   }
 };
 exports.validateUserForPayment = async (req, res, next) => {
@@ -112,7 +143,15 @@ exports.validateUserForPayment = async (req, res, next) => {
       where: {
         [Op.and]: [{ uid: uid }, { deviceId: deviceId }],
       },
-      attributes: ["id", "name", "email", "uid","freeTrialOn","freeTrialEndMillis","freeTrialStartMillis"],
+      attributes: [
+        "id",
+        "name",
+        "email",
+        "uid",
+        "freeTrialOn",
+        "freeTrialEndMillis",
+        "freeTrialStartMillis",
+      ],
     });
     if (!auser) {
       return res.status(404).json({
@@ -128,40 +167,36 @@ exports.validateUserForPayment = async (req, res, next) => {
     res.status(500).end();
   }
 };
-exports.validateUserDeviceAndStatus= async(req,res,next)=>{
-  try{
-    const {deviceId,email,userId} = req.body
+exports.validateUserDeviceAndStatus = async (req, res, next) => {
+  try {
+    const { deviceId, email, userId } = req.body;
 
     const user = await userDb.findOne({
-      where:{
-        [Op.and]:[
-          {email:email},
-          {deviceId:deviceId},
-          {uid:userId}
-        ]
-      }
-    })
-    if(!user){
+      where: {
+        [Op.and]: [{ email: email }, { deviceId: deviceId }, { uid: userId }],
+      },
+    });
+    if (!user) {
       return res.status(404).json({
-        code:404,
-        message:"account does not exist"
-      })
+        code: 404,
+        message: "account does not exist",
+      });
     }
-    if(!user.isLoggedIn){
+    if (!user.isLoggedIn) {
       return status(401).json({
-        code:401,
-        message:"user not logged in"
-      })
+        code: 401,
+        message: "user not logged in",
+      });
     }
     res.status(200).json({
-      code:200,
-      message:"validated"
-    })
-  }catch(e){
-    console.log(e)
+      code: 200,
+      message: "validated",
+    });
+  } catch (e) {
+    console.log(e);
     res.status(500).json({
-      code:500,
-      message:"an error occurred"
-    })
+      code: 500,
+      message: "an error occurred",
+    });
   }
-}
+};

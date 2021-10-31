@@ -4,6 +4,7 @@ const multer = require("multer");
 const deleteFile = require("../utils/deleteFromFileSystem");
 const nanoid = require("nanoid").nanoid;
 const { Storage } = require("@google-cloud/storage");
+const cloudinary = require("cloudinary");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./uploads");
@@ -41,25 +42,29 @@ exports.uploadTestimony = async (req, res, next) => {
     const isTestimony = await axios.get(testimonycheckuri);
     console.log(isTestimony.data);
     if (isTestimony.data.code == 200) {
-      return res.json({
+      return res.status(405).json({
         code: 405,
         message: "already uploaded a testimony",
       });
     }
     //construct path
     const pathTofile = path.join(`./uploads/${fileName}`);
-    const cloudStorage = new Storage({ keyFilename: "./key.json" });
+    const result = await cloudinary.v2.uploader.upload(pathTofile, {
+      resource_type: "video",
+    });
+    console.log(result);
+    /*const cloudStorage = new Storage({ keyFilename: "./key.json" });
     const result = await cloudStorage
       .bucket("studyzonetestimonies")
       .upload(`./${pathTofile}`, { destination: fileName });
     const filelink = result[0].metadata.selfLink;
-    const fileId = result[0].metadata.id;
+    const fileId = result[0].metadata.id;*/
     //make request to admin db
     //with videolink,id,user hash, user name.user email
     const uri = `${process.env.centralBase}/testimony/user/add`;
     const { data } = await axios.post(uri, {
-      link: filelink,
-      fileId,
+      link: result.secure_url, //filelink,
+      fileId: result.public_id,
       user: user.uid,
       name: user.name,
       email: user.email,
@@ -80,7 +85,10 @@ exports.uploadTestimony = async (req, res, next) => {
     const { fileName } = req;
     deleteFile(fileName);
     console.log(e);
-    res.status(500).end();
+    res.status(500).json({
+      code: 500,
+      message: "an error occured",
+    });
   }
 };
 exports.checkForTestimony = async (req, res, next) => {

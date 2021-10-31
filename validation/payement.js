@@ -45,7 +45,10 @@ exports.validatePaymentDetails = async (req, res, next) => {
     next();
   } catch (e) {
     console.log(e);
-    res.status(500).end();
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
+    })
   }
 };
 exports.validateCardPayment = async (req, res, next) => {
@@ -75,7 +78,7 @@ exports.validateCardPayment = async (req, res, next) => {
     if (!(status == "success" && email == user.email)) {
       return res.status(404).json({
         code: 404,
-        messgae: "invalid payment details",
+        message: "invalid payment details",
         email,
         status,
         amountPaid,
@@ -84,7 +87,7 @@ exports.validateCardPayment = async (req, res, next) => {
     if (amountPaid.toString() != price.toString()) {
       return res.status(404).json({
         code: 400,
-        messgae:
+        message:
           "amount paid does not tally with pastquestion price,contact support",
       });
     }
@@ -94,6 +97,9 @@ exports.validateCardPayment = async (req, res, next) => {
     next();
   } catch (e) {
     console.log(e);
-    res.status(500).end();
+    res.status(500).json({
+      code:500,
+      message:"an error occurred"
+    });
   }
 };

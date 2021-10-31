@@ -12,6 +12,7 @@ router.post(
   validator.validateUserOnPostRequest,
   chatController.sendChatMessage
 );
-router.post("/get/offline/messages",validator.validateUserOnPostRequest,chatController.getOfflineMessages) 
+router.post("/send/group/media",chatController.imageUploader,validator.validateUserOnPostRequest,chatController.sendChatMedia)
+router.post("/get/offline/messages",validator.validateUserOnPostRequest,chatController.getOfflineMessages)
 
 module.exports = router;

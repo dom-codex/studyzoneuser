@@ -9,4 +9,5 @@ router.post(
   testimonyController.checkForTestimony,
   requestController.requestWithdrawal
 );
+router.post("/reverse", requestController.reverseWithdrawal);
 module.exports = router;
