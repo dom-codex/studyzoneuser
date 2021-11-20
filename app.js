@@ -15,6 +15,7 @@ const transaction = require("./models/transaction");
 const downloads = require("./models/downloads");
 const chats = require("./models/chat");
 //utils function imports
+const userVerifier = require("./verification/userVerification");
 const activateCors = require("./utils/cors");
 const sequelize = require("./utils/database");
 //routes impports
@@ -47,16 +48,16 @@ app.use(express.static(path.join(__dirname, "downloads")));
 app.use("/auth", authRoute);
 app.use("/password", resetRoute);
 app.use("/verify", verifyRoute);
-app.use("/notifications", notificationRoute);
+app.use("/notifications", userVerifier.verifyUser, notificationRoute);
 app.use("/upload", uploadRoute);
-app.use("/find", findRoute);
-app.use("/pay", paymentRoute);
-app.use("/get", getRoute);
-app.use("/withdrawal", withdrawalRoute);
-app.use("/download", downloadRoute);
-app.use("/chat", chatRoute);
-app.use("/support", supportRoute);
-app.use("/search", searchRouter);
+app.use("/find", userVerifier.verifyUser, findRoute);
+app.use("/pay", userVerifier.verifyUser, paymentRoute);
+app.use("/get", userVerifier.verifyUser, getRoute);
+app.use("/withdrawal", userVerifier.verifyUser, withdrawalRoute);
+app.use("/download", userVerifier.verifyUser, downloadRoute);
+app.use("/chat", userVerifier.verifyUser, chatRoute);
+app.use("/support", userVerifier.verifyUser, supportRoute);
+app.use("/search", userVerifier.verifyUser, searchRouter);
 //connect to database
 //user.hasMany(referral, { onDelete: "CASCADE" });
 user.hasMany(refferalList, { foreignKey: "referred", onDelete: "CASCADE" });
@@ -72,15 +73,15 @@ downloads.belongsTo(user);
 sequelize.sync({ alter: true }).then(async (_) => {
   //  await mongoose.connect(process.env.mongo);
   //await db.create({amountToEarnOnReferral: 200,});
-  server.listen(process.env.PORT);
+  server.listen(4000);
   io.init(server);
   io.getIO().once("connect", (socket) => {
     console.log("connected");
     //activity listeners
-    socket.on("joinRealTimeChannel",(data)=>{
-      const sentData = JSON.parse(data)
-      socket.join(data.userId)
-    })
+    socket.on("joinRealTimeChannel", (data) => {
+      const sentData = JSON.parse(data);
+      socket.join(data.userId);
+    });
     //join listener
     socket.on("joinAdminGroup", (room) => {
       //join group  chat with admin
