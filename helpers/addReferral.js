@@ -3,6 +3,7 @@ const referral = require("../models/referral");
 const referralIdRecord = require("../models/referralList");
 const userDb = require("../models/user");
 const nanoid = require("nanoid").nanoid;
+const axios = require("axios")
 module.exports = async (referralCode, newUser) => {
   //check if referral exists
   const referrer = await userDb.findOne({
@@ -31,14 +32,18 @@ module.exports = async (referralCode, newUser) => {
   });
   //if no record is established for the user create one and do necessary increments
   //if record already exist do necessary updates
+  //get referral bonus
+  const uri =   `${process.env.centralBase}/get/referral/bonus`
+  const {data:{bonus}} = await axios(uri)
+  console.log(bonus)
   if (!referrerRecord) {
     const ref = await referral.create({
       userId: referrer.id,
-      totalEarned: 20,
+      totalEarned: bonus,
       noOfReferrals: 1,
     });
   } else {
-    referrerRecord.totalEarned = referrerRecord.totalEarned + 20;
+    referrerRecord.totalEarned = referrerRecord.totalEarned + bonus;
     referrerRecord.noOfReferrals = referrerRecord.noOfReferrals + 1;
     await referrerRecord.save();
   }

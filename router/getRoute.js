@@ -4,58 +4,71 @@ const getNUsers = require("../controllers/GET/getNoOfUsers");
 const userlistController = require("../controllers/GET/userslist");
 const userInfoController = require("../controllers/GET/userInfo");
 const userValidator = require("../validation/user");
-const profileDetailsController = require("../usergetControllers/profiledata");
+const {getBanks,getProfileData} = require("../usergetControllers/profiledata");
 const referralDetailsController = require("../usergetControllers/referrals");
 const notificationsController = require("../usergetControllers/notifications");
 
 const schoolController = require("../usergetControllers/school");
 const transactionController = require("../controllers/transaction");
+//new
+const {
+  getPastquestionsOnly,
+  getPaymentStatus,
+  checkFreeTrialOption,
+  getPastQuestionsPrice,
+} = require("../usergetControllers/pastquestions");
+const { verifyUser } = require("../verification/userVerification");
 router.get("/users/number", getNUsers);
 router.get("/users", userlistController);
 router.get("/referrals", userInfoController.getUserReferralList);
 router.get(
   "/user/details",
-  userValidator.validateUser,
-  profileDetailsController
+  verifyUser,
+  getProfileData
 );
 router.get(
   "/user/referrals",
-  userValidator.validateUser,
+  verifyUser,
   referralDetailsController
 );
 router.get(
   "/user/notifications",
-  userValidator.validateUser,
+  verifyUser,
   notificationsController.getNotifications
 );
 router.get(
   "/schools",
-  userValidator.validateUser,
+  verifyUser,
   schoolController.getUniversities
 );
 router.get(
   "/school/faculty",
-  userValidator.validateUser,
+  verifyUser,
   schoolController.getFaculty
 );
 router.get(
   "/school/faculty/department",
-  userValidator.validateUser,
+  verifyUser,
   schoolController.getDepartment
 );
 router.get(
   "/school/faculty/department/levels",
-  userValidator.validateUser,
+  verifyUser,
   schoolController.getDepartmentLevels
 );
 router.get(
   "/pastquestions",
-  userValidator.validateUser,
+  verifyUser,
   schoolController.getPastquestions
 );
 router.get(
   "/transactions",
-  userValidator.validateUser,
+  verifyUser,
   transactionController.getTransactions
 );
+router.get("/pastquestions/only",verifyUser ,getPastquestionsOnly);
+router.get("/payment/status",verifyUser, getPaymentStatus);
+router.get("/freetrial/settings",verifyUser, checkFreeTrialOption);
+router.get("/pastquestions/price",verifyUser, getPastQuestionsPrice);
+router.get("/banks",verifyUser,getBanks)
 module.exports = router;

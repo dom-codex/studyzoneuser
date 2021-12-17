@@ -1,18 +1,29 @@
+const userDb = require("../models/user")
 exports.setBankDetails = async (req, res, next) => {
-  const canUpload = req.canUpload;
+  try{
   const user = req.user;
-  const { bank, accountNo } = req.body;
-  if (!canUpload) {
-    return res.status(403).json({
-      code: 403,
-      messsage: "an error occured try again",
-    });
-  }
-  user.bank = bank;
-  user.accountNo = accountNo;
-  await user.save();
+  const { bankName, accountNo,accountName,bankCode } = req.body;
+  //find user
+  const userr = await userDb.findOne({
+    where:{
+      id:user
+    },
+    attributes:["id","bank","accountNo","accountName","bankCode"]
+  })
+  userr.bank = bankName;
+  userr.accountNo = accountNo;
+  userr.accountName = accountName
+  userr.bankCode = bankCode
+  await userr.save();
   res.status(200).json({
     code: 200,
     message: "upload successfull",
   });
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      message:"an error occurred"
+    })
+  }
+
 };

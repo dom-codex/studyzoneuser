@@ -1,18 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
 //controllers
 const userUploads = require("../controllers/userUploads");
 //helpers import
 const bankDetailsValidation = require("../helpers/bankDetailsVerification");
-const userValidator = require("../validation/user");
-const testimonyController = require("../controllers/testimony");
-router.post("/user/bank", bankDetailsValidation, userUploads.setBankDetails);
+const {extractWithMulter,checkForTestimony,uploadTestimony} = require("../controllers/testimony");
+const {verifyUser} = require("../verification/userVerification")
+router.post("/user/bank",verifyUser, userUploads.setBankDetails);
 router.post(
   "/user/testimony",
   (req, res, next) => {
     try {
-      testimonyController.extractWithMulter(req, res, (e) => {
+      extractWithMulter(req, res, (e) => {
         if (!e) {
           return next();
         }
@@ -26,8 +25,10 @@ router.post(
       res.status(500).end();
     }
   },
-  userValidator.validateUserOnPostRequest,
-  testimonyController.extractWithMulter,
-  testimonyController.uploadTestimony
+  verifyUser,
+  checkForTestimony,  
+  uploadTestimony
+  //userValidator.validateUserOnPostRequest,
+  //testimonyController.extractWithMulter,
 );
 module.exports = router;

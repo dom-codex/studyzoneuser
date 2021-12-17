@@ -48,14 +48,14 @@ app.use(express.static(path.join(__dirname, "downloads")));
 app.use("/auth", authRoute);
 app.use("/password", resetRoute);
 app.use("/verify", verifyRoute);
-app.use("/notifications", userVerifier.verifyUser, notificationRoute);
+app.use("/notifications", notificationRoute);
 app.use("/upload", uploadRoute);
 app.use("/find", userVerifier.verifyUser, findRoute);
 app.use("/pay", userVerifier.verifyUser, paymentRoute);
-app.use("/get", userVerifier.verifyUser, getRoute);
-app.use("/withdrawal", userVerifier.verifyUser, withdrawalRoute);
+app.use("/get", getRoute);
+app.use("/withdrawal",withdrawalRoute);
 app.use("/download", userVerifier.verifyUser, downloadRoute);
-app.use("/chat", userVerifier.verifyUser, chatRoute);
+app.use("/chat", chatRoute);
 app.use("/support", userVerifier.verifyUser, supportRoute);
 app.use("/search", userVerifier.verifyUser, searchRouter);
 //connect to database
@@ -75,8 +75,8 @@ sequelize.sync({ alter: true }).then(async (_) => {
   //await db.create({amountToEarnOnReferral: 200,});
   server.listen(4000);
   io.init(server);
-  io.getIO().once("connect", (socket) => {
-    console.log("connected");
+  io.getIO().on("connect", (socket) => {
+    console.log("socket connected");
     //activity listeners
     socket.on("joinRealTimeChannel", (data) => {
       const sentData = JSON.parse(data);
@@ -85,10 +85,11 @@ sequelize.sync({ alter: true }).then(async (_) => {
     //join listener
     socket.on("joinAdminGroup", (room) => {
       //join group  chat with admin
-      console.log("joining");
+    
       socket.join(room);
     });
     socket.on("joinGroup", (data) => {
+    
       const sentData = JSON.parse(data);
       socket.join(sentData.department);
       //emit to other users that a new user has joined
@@ -97,6 +98,10 @@ sequelize.sync({ alter: true }).then(async (_) => {
         name: sentData.name,
       });
     });
+    socket.on("leavingGroup",(raw)=>{
+      const data = JSON.parse(raw)
+      socket.broadcast.to(data.department).emit("userLeft",{name:data.name,sender:data.user})
+    })
   });
   console.log("listening...");
 });

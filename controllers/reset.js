@@ -200,31 +200,33 @@ exports.changePassword = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
   try {
     const { newPassword, oldPassword } = req.body;
-    const { user, canProceed } = req;
+    const { aUser, canProceed } = req;
     if (!canProceed) {
-      return res.json({
+      return res.status(400).json({
         code: 400,
         message: "cannot process request",
       });
     }
     //verify oldPassword
-    const result = await bcrypt.compare(oldPassword, user.password);
+    const result = await bcrypt.compare(oldPassword, aUser.password);
     if (!result) {
-      return res.json({
+      return res.status(400).json({
         code: 400,
         message: "invalid password",
       });
     }
     //hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
-    user.password = hashedPassword;
-    await user.save();
+    aUser.password = hashedPassword;
+    await aUser.save();
     return res.status(200).json({
       message: "success",
       code: 200,
     });
   } catch (e) {
     console.log(e);
-    res.status(500);
+    res.status(500).json({
+      message:"an error occurred"
+    });
   }
 };

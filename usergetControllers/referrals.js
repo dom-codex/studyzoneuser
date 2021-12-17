@@ -10,7 +10,7 @@ module.exports = async (req, res, next) => {
     const limit = 10;
     const referrerInfo = await referrersDb.findOne({
       where: {
-        userId: user.id,
+        userId: user,
       },
       attributes: ["noOfReferrals", "totalEarned"],
     });
@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
       limit: limit,
       offset: page * limit,
       where: {
-        referrer: user.id,
+        referrer: user,
       },
       attributes: ["referred"],
     });

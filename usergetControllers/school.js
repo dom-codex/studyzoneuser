@@ -1,17 +1,12 @@
 const axios = require("axios");
 const transactionDb = require("../models/transaction");
 const sequelize = require("sequelize");
-const user = require("../models/user");
+const userDb = require("../models/user");
 exports.getUniversities = async (req, res, next) => {
   try {
     const { user, canProceed } = req;
     const { page, type } = req.query;
-    if (!canProceed) {
-      return res.json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+ 
     const uri = `${process.env.centralBase}/user/get/school?type=${type}&page=${page}`;
     const { data } = await axios.get(uri);
     if (data.code != 200) {
@@ -34,12 +29,7 @@ exports.getFaculty = async (req, res, next) => {
   try {
     const { user, canProceed } = req;
     const { sch, page } = req.query;
-    if (!canProceed) {
-      return res.json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+  
     const uri = `${process.env.centralBase}/user/get/school/faculty?sch=${sch}&page=${page}`;
     const { data } = await axios.get(uri);
     res.status(200).json({
@@ -56,12 +46,7 @@ exports.getDepartment = async (req, res, next) => {
   try {
     const { canProceed } = req;
     const { page, sch, faculty } = req.query;
-    if (!canProceed) {
-      return res.json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+  
     const uri = `${process.env.centralBase}/user/get/school/faculty/department?sch=${sch}&fid=${faculty}&page=${page}`;
     const { data } = await axios.get(uri);
     res.status(200).json({
@@ -77,12 +62,7 @@ exports.getDepartmentLevels = async (req, res, next) => {
   try {
     const { canProceed } = req;
     const { page, sch, faculty, department } = req.query;
-    if (!canProceed) {
-      return res.json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+ 
     const uri = `${process.env.centralBase}/user/get/school/faculty/department/levels?sch=${sch}&fid=${faculty}&did=${department}&page=${page}`;
     const { data } = await axios.get(uri);
     res.status(200).json({
@@ -97,14 +77,15 @@ exports.getDepartmentLevels = async (req, res, next) => {
 exports.getPastquestions = async (req, res, next) => {
   try {
     const { canProceed } = req;
-    const { sch, faculty, department, level, semester, page } = req.query;
+    const { sch, faculty, department, level, semester, page,userHash } = req.query;
     const { user } = req;
-    if (!canProceed) {
-      return res.json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+    //find user
+    const userr = await userDb.findOne({
+      where:{
+        id:user
+      },
+      attributes:["email"]
+    })
     //make call to central db
     const uri = `${process.env.centralBase}/user/get/pastquestions?sch=${sch}&fid=${faculty}&did=${department}&lid=${level}&semester=${semester}&page=${page}`;
     const { data } = await axios.get(uri);
@@ -115,8 +96,8 @@ exports.getPastquestions = async (req, res, next) => {
     const paymentHistory = await transactionDb.findOne({
       where: {
         [sequelize.Op.and]: [
-          { userId: user.id },
-          { userEmail: user.email },
+          { userId: user },
+          { userEmail: userr.email },
           { semester: semester },
           { school: sch },
           { faculty: faculty },
@@ -142,7 +123,7 @@ exports.getPastquestions = async (req, res, next) => {
     //verify payment from central dp
     const verifyUri = `${process.env.centralBase}/user/verify/payment`;
     const result = await axios.post(verifyUri, {
-      user: user.uid,
+      user: userHash,
       transactionId: paymentHistory.TxId,
     });
 

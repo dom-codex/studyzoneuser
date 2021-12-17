@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const userValidator = require("../validation/user");
 const testimonyController = require("../controllers/testimony");
-const requestController = require("../controllers/withdrawalrequest");
+const {reverseWithdrawal,requestWithdrawal,confirmIfCanProceedWithWithdrawal} = require("../controllers/withdrawalrequest");
+const {verifyUser} = require("../verification/userVerification")
 router.post(
   "/request",
-  userValidator.validateUserOnPostRequest,
-  testimonyController.checkForTestimony,
-  requestController.requestWithdrawal
+  verifyUser,
+  confirmIfCanProceedWithWithdrawal,
+  requestWithdrawal
 );
-router.post("/reverse", requestController.reverseWithdrawal);
+router.post("/reverse", reverseWithdrawal);
 module.exports = router;

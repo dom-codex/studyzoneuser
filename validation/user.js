@@ -63,21 +63,15 @@ exports.validateUser = async (req, res, next) => {
 };
 exports.validateUserForPasswordUpdate = async (req, res, next) => {
   try {
-    const { user } = req.body;
+    const { user } = req;
     const aUser = await userDb.findOne({
       where: {
-        uid: user,
+        id: user,
       },
       attributes: ["id", "password"],
     });
-    if (!aUser) {
-      return res.status(404).json({
-        code: 404,
-        message: "user not found",
-      });
-    }
-    req.user = aUser;
     req.canProceed = true;
+    req.aUser = aUser
     next();
   } catch (e) {
     console.log(e);

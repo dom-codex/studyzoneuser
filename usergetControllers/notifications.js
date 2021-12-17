@@ -2,21 +2,16 @@ const notificationDb = require("../models/notifications");
 const axios = require("axios")
 exports.getNotifications = async (req, res, next) => {
   try {
-    const { user, canProceed } = req;
+    const { user } = req;
     const { page } = req.query;
-    if (!canProceed) {
-      return res.json({
-        code: 400,
-        message: "cannot process request",
-      });
-    }
+ 
     //get notifications
     const limit = 10;
     const notifications = await notificationDb.findAll({
       limit: limit,
       offset: limit * page,
       where: {
-        userId: user.id,
+        userId: user,
       },
       attributes: [
         "notificationId",

@@ -8,6 +8,65 @@ const path = require("path");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 //const slugDb = require("../models/slug")
+
+//new download method
+exports.downloadAPastQuestion = async (req, res, next) => {
+  try {
+    const { user } = req;
+    //get pastquestion hash and associated institution details from request body
+    const { pastquestionId, school, department, faculty, level, semester } =
+      req.body;
+    //fetch associated pastquestion details
+    const uri = `${process.env.centralBase}/download/pastquestion`;
+    const {
+      data: { exists, fileId, url, fileName },
+    } = await axios.post(uri, {
+      pastquestionId,
+      school,
+      department,
+      faculty,
+      level,
+      semester,
+    });
+
+    if (!exists) {
+      return res.status(401).json({
+        message: "past question not found",
+      });
+    }
+    //use returned url to download pastquestion or use id or url to get associated pq from cloud storage to download pastquestion into server
+    //add code to make downloads unique
+    const filePath = path.join(__dirname, "..", "downloads", `${fileName}`);
+    const writer = fs.createWriteStream(filePath);
+    console.log(fileName)
+    
+    const response = await axios({
+      url: `${process.env.centralBase}/uploads/${fileName}`,
+      method: "GET",
+      responseType: "stream",
+    });
+
+    //pipe downloaded pastquestion to user
+    response.data.pipe(writer);
+    const stream = fs.createReadStream(filePath);
+    stream.pipe(res).on("finish", () => {
+      stream.destroy();
+      fs.unlinkSync(filePath, (e) => {});
+
+      res.end();
+      //delete pastquestion
+      // fs.unlinkSync(filePath, (e) => {});
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      code: 500,
+      message: "an error occurred",
+    });
+  }
+};
+//end of new download method
+/*
 exports.prepareDownloads = async (req, res, next) => {
   try {
     const { user } = req;
@@ -36,8 +95,8 @@ exports.prepareDownloads = async (req, res, next) => {
     /*const { downloadSlugs } = await bulkCreateDownloads(
       data.pastquestions,
       user.id
-    );*/
-    console.log(data,"DATAS");
+    );
+    console.log(data, "DATAS");
     const nanoid = require("nanoid").nanoid;
     const slug = await downloadDb.create({
       slug: nanoid(),
@@ -62,7 +121,7 @@ exports.downloadPastQuestion = async (req, res, next) => {
     const userOne = await userDb.findOne({
       where: {
         [Op.and]: [
-        //  {
+          //  {
           //  deviceId: deviceId,
           //},
           {
@@ -110,7 +169,7 @@ exports.downloadPastQuestion = async (req, res, next) => {
       .file(file.fileName)
       .download({ destination: filePath });
 */
-    const response = await axios({
+/*   const response = await axios({
       url: `${process.env.centralBase}/uploads/${file.cloudUri}`,
       method: "GET",
       responseType: "stream",
@@ -127,9 +186,9 @@ exports.downloadPastQuestion = async (req, res, next) => {
         await userOne.save();
       }
       fs.unlinkSync(filePath, (e) => {});
-    });
+    });*/
 
-    /*  res.download(filePath, async (e) => {
+/*  res.download(filePath, async (e) => {
       console.log(e);
       if (!e) {
         if (userOne.freeTrialOn) {
@@ -141,9 +200,10 @@ exports.downloadPastQuestion = async (req, res, next) => {
         await file.destroy();
         // fs.unlinkSync(filePath, (e) => {});
       }
-    });*/
+    });
   } catch (e) {
     console.log(e);
     res.status(500).end();
   }
 };
+*/

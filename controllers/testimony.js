@@ -5,6 +5,8 @@ const deleteFile = require("../utils/deleteFromFileSystem");
 const nanoid = require("nanoid").nanoid;
 const { Storage } = require("@google-cloud/storage");
 const cloudinary = require("cloudinary");
+const userDb = require("../models/user")
+//multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./uploads");
@@ -17,6 +19,7 @@ const storage = multer.diskStorage({
   },
   //add mime type and size filter
 });
+//multer middleware 
 exports.extractWithMulter = multer({
   storage: storage,
   limits: { fileSize: 15 * 1024 * 1024 },
@@ -27,6 +30,28 @@ exports.extractWithMulter = multer({
     return cb(new Error("file must be in mp4 format"), false);
   },
 }).single("testimony");
+//method for checking for existing testimony
+exports.checkForTestimony = async (req, res, next) => {
+  try {
+    const { userHash } = req.body
+    //check for testimony
+    const testimonycheckuri = `${process.env.centralBase}/testimony/user?user=${userHash}`;
+    const isTestimony = await axios(testimonycheckuri);
+    if (isTestimony.data.code == 200) {
+      return res.status(405).json({
+        code: 405,
+        message: "already uploaded a testimony",
+      });
+    }
+    //forward request to next middleware if no testimony 
+    next()
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({
+      message: "an  error occurred"
+    })
+  }
+}
 exports.uploadTestimony = async (req, res, next) => {
   try {
     const { fileName, user } = req;
@@ -37,39 +62,38 @@ exports.uploadTestimony = async (req, res, next) => {
         message: "uploadFailed",
       });
     }
-    //check for testimony
-    const testimonycheckuri = `${process.env.centralBase}/testimony/user?user=${user.uid}`;
-    const isTestimony = await axios.get(testimonycheckuri);
-    console.log(isTestimony.data);
-    if (isTestimony.data.code == 200) {
-      return res.status(405).json({
-        code: 405,
-        message: "already uploaded a testimony",
-      });
-    }
+    //find user
+    const userr = await userDb.findOne({
+      where:{
+        id:user
+      },
+      attributes:["name","email","uid"]
+    })
     //construct path
     const pathTofile = path.join(`./uploads/${fileName}`);
-    const result = await cloudinary.v2.uploader.upload(pathTofile, {
+    //upload file to database (cloudingary)
+  /*  const result = await cloudinary.v2.uploader.upload(pathTofile, {
       resource_type: "video",
     });
-    console.log(result);
+    console.log(result);*/
+    //upload to google cloud storage
     /*const cloudStorage = new Storage({ keyFilename: "./key.json" });
     const result = await cloudStorage
       .bucket("studyzonetestimonies")
       .upload(`./${pathTofile}`, { destination: fileName });
     const filelink = result[0].metadata.selfLink;
     const fileId = result[0].metadata.id;*/
-    //make request to admin db
-    //with videolink,id,user hash, user name.user email
+    //save testimony link to admin database
     const uri = `${process.env.centralBase}/testimony/user/add`;
     const { data } = await axios.post(uri, {
-      link: result.secure_url, //filelink,
-      fileId: result.public_id,
-      user: user.uid,
-      name: user.name,
-      email: user.email,
+      link: "", //filelink,
+      fileId: "",
+      user: userr.uid,
+      name: userr.name,
+      email: userr.email,
     });
     if (data.code != 200) {
+      //delete file from cloud
       deleteFile(fileName);
       return res.status(400).json({
         code: 400,
@@ -83,28 +107,12 @@ exports.uploadTestimony = async (req, res, next) => {
     });
   } catch (e) {
     const { fileName } = req;
+    //delete from cloud
     deleteFile(fileName);
     console.log(e);
     res.status(500).json({
       code: 500,
       message: "an error occured",
     });
-  }
-};
-exports.checkForTestimony = async (req, res, next) => {
-  try {
-    const { user } = req;
-    const testimonyUrl = `${process.env.centralBase}/testimony/user?user=${user.uid}`;
-    const { data } = await axios.get(testimonyUrl);
-    if (data.code != 200) {
-      return res.json({
-        code: 405,
-        message: data.message,
-      });
-    }
-    next();
-  } catch (e) {
-    console.log(e);
-    res.status(500).end();
   }
 };

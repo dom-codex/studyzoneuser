@@ -3,19 +3,20 @@ const router = express.Router();
 const notification = require("../controllers/notifications");
 const notificationHandler = require("../usergetControllers/notifications");
 const userValidator = require("../validation/user");
+const {verifyUser} = require("../verification/userVerification")
 router.get(
   "/all",
-  userValidator.validateUser,
+  verifyUser,
   notification.getAllNotifications
 );
 router.post(
   "/post",
-  userValidator.validateUserOnPostRequest,
+  verifyUser,
   notification.processNotificationFromAdmin
 );
 router.get(
   "/get/announcements",
-  userValidator.validateUser,
+  verifyUser,
   notificationHandler.getAnnouncements
 );
 router.post("/announcement", notification.newAnnouncement);

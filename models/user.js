@@ -30,6 +30,12 @@ const user = sequelize.define("user", {
   accountNo: {
     type: Sequelize.STRING,
   },
+  accountName:{
+    type:Sequelize.STRING
+  },
+  bankCode:{
+    type:Sequelize.STRING
+  },
   uid: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,

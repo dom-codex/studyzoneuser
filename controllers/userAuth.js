@@ -94,10 +94,10 @@ exports.signUp = async (req, res, next) => {
 //login controller#
 exports.logout = async (req, res, next) => {
   try {
-    const { email, deviceId } = req.body;
+    const { userHash } = req.body;
     const user = await userDb.findOne({
       where: {
-        [Op.and]: [{ email: email }, { deviceId: deviceId }],
+        uid: userHash,
       },
       attribute: ["id", "isLoggedIn"],
     });

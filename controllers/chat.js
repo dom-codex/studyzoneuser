@@ -10,12 +10,7 @@ const sequelize = require("sequelize")
 exports.getGroupChatDetails = async (req, res, next) => {
   try {
     const { canProceed } = req;
-    if (!canProceed) {
-      return res.status(404).json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+
     const { user, department } = req.query;
     const uri = `${process.env.centralBase}/chat/get/group/details?user=${user}&department=${department}`;
     const { data } = await axios.get(uri);
@@ -105,13 +100,6 @@ exports.sendChatMedia = async(req,res,next)=>{
 }
 exports.sendChatMessage = async(req, res, next) => {
   try {
-    const { canProceed } = req;
-    if (!canProceed) {
-      return res.status(404).json({
-        code: 404,
-        message: "user not found",
-      });
-    }
     const { message, time, user, department, name } = req.body;
     const newChat = await chatDb.create({
       message,

@@ -6,13 +6,24 @@ const IO = require("../socket");
 exports.requestWithdrawal = async (req, res, next) => {
   try {
     const { user } = req;
+    //get user details
+    const userr = await userDb.findOne({
+      where:{
+        id:user
+      },
+      attributes:["name","email","uid","bank","accountNo","accountName","bankCode"]
+    })
     const { amount } = req.body;
     const requestUrl = `${process.env.centralBase}/withdrawal/request`;
     const result = await axios.post(requestUrl, {
-      name: user.name,
-      user: user.uid,
-      email: user.email,
+      name: userr.name,
+      user: userr.uid,
+      email: userr.email,
       amount: amount,
+      bank:userr.bank,
+      accountNo:userr.accountNo,
+      accountName:userr.accountName,
+      bankCode:userr.bankCode
     });
     if (result.data.code != 200) {
       return res.json({
@@ -20,10 +31,10 @@ exports.requestWithdrawal = async (req, res, next) => {
         message: result.data.message,
       });
     }
-    //reduce users earned amount
+    //reduce user's earned amount
     const referrerRecord = await referrerDb.findOne({
       where: {
-        userId: user.id,
+        userId: user,
       },
       attribute: ["totalEarned", "id"],
     });
@@ -35,7 +46,9 @@ exports.requestWithdrawal = async (req, res, next) => {
     });
   } catch (e) {
     console.log(e);
-    res.status(500);
+    res.status(500).json({
+      message:"an error occurred"
+    });
   }
 };
 exports.reverseWithdrawal = async (req, res, next) => {
@@ -92,3 +105,20 @@ exports.reverseWithdrawal = async (req, res, next) => {
     });
   }
 };
+exports.confirmIfCanProceedWithWithdrawal = async(req,res,next)=>{
+  try{
+    const {userHash} = req.body
+    //construct uri
+    const uri = `${process.env.centralBase}/withdrawal/comfirm/status?user=${userHash}`
+    const {data:canProceed} = await axios(uri)
+    if(canProceed) return next()
+    return res.status(200).json({
+      message:"withdrawal cannot be processed at the moment please upload a positive testimony about this platform, then try again "
+    })
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      message:"an error occurred"
+    })
+  }
+}
