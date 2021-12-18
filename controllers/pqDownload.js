@@ -6,6 +6,7 @@ const userDb = require("../models/user");
 const { Op } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
+const {Dropbox}=require("dropbox")
 const cloudinary = require("cloudinary");
 //const slugDb = require("../models/slug")
 
@@ -34,6 +35,13 @@ exports.downloadAPastQuestion = async (req, res, next) => {
         message: "past question not found",
       });
     }
+    const dropbox = new Dropbox({accessToken:process.env.dropboxToken})
+    console.log(fileName)
+    const resp = await dropbox.filesDownload({path:`/pastquestions/${fileName}`})
+    console.log(resp)
+    res.write(resp.result.fileBinary,"binary")
+    res.end(null,"binary")
+    /*
     //use returned url to download pastquestion or use id or url to get associated pq from cloud storage to download pastquestion into server
     //add code to make downloads unique
     const filePath = path.join(__dirname, "..", "downloads", `${fileName}`);
@@ -48,15 +56,14 @@ exports.downloadAPastQuestion = async (req, res, next) => {
 
     //pipe downloaded pastquestion to user
     response.data.pipe(writer);
-    const stream = fs.createReadStream(filePath);
-    stream.pipe(res).on("finish", () => {
-      stream.destroy();
-      fs.unlinkSync(filePath, (e) => {});
-
+   // const stream = fs.createReadStream(resp.fileBinary);
+    resp.fileBinary.pipe(res).on("finish", () => {
+     // stream.destroy();
+      //fs.unlinkSync(filePath, (e) => {});
       res.end();
       //delete pastquestion
       // fs.unlinkSync(filePath, (e) => {});
-    });
+    });*/
   } catch (e) {
     console.log(e);
     res.status(500).json({
