@@ -1,10 +1,12 @@
 const axios = require("axios");
 const path = require("path");
+const fs = require("fs")
 const multer = require("multer");
 const deleteFile = require("../utils/deleteFromFileSystem");
 const nanoid = require("nanoid").nanoid;
 const { Storage } = require("@google-cloud/storage");
 const cloudinary = require("cloudinary");
+const { Dropbox } = require("dropbox")
 const userDb = require("../models/user")
 //multer storage configuration
 const storage = multer.diskStorage({
@@ -64,18 +66,63 @@ exports.uploadTestimony = async (req, res, next) => {
     }
     //find user
     const userr = await userDb.findOne({
-      where:{
-        id:user
+      where: {
+        id: user
       },
-      attributes:["name","email","uid"]
+      attributes: ["name", "email", "uid"]
     })
     //construct path
     const pathTofile = path.join(`./uploads/${fileName}`);
+    //INIT DROPBOX
+    const dropbox = new Dropbox({ accessToken: process.env.dropboxToken })
+    //SEND RESPONSE FUNCTION
+    const sendResponse = async(link, fileId) => {
+      const uri = `${process.env.centralBase}/testimony/user/add`;
+      const { data } = await axios.post(uri, {
+        link: link, //filelink,
+        fileId: fileId,
+        user: userr.uid,
+        name: userr.name,
+        email: userr.email,
+      });
+      if (data.code != 200) {
+        //delete file from cloud
+        await dropbox.filesDeleteV2({ path: `/testimony/${fileName}` })
+        //DELETE FROM SERVER
+        fs.unlink(pathTofile, (e) => {
+          if (e) { }
+          return res.status(400).json({
+            code: 400,
+            message: "failed to upload testimony",
+          });
+        })
+
+      } else {
+        fs.unlink(pathTofile, (e) => {
+          if (e) { }
+          res.status(200).json({
+            code: 200,
+            message: "uploaded successfully",
+          });
+        })
+      }
+
+
+    }
+    fs.readFile(pathTofile, async(e, contents) => {
+      if (e) {
+        //UNLINK FILE
+      } else {
+        const resp = await dropbox.filesUpload({ path: `/testimony/${fileName}`, contents })
+        console.log(resp)
+        await sendResponse(resp.result.name,resp.result.name)
+      }
+    })
     //upload file to database (cloudingary)
-  /*  const result = await cloudinary.v2.uploader.upload(pathTofile, {
-      resource_type: "video",
-    });
-    console.log(result);*/
+    /*  const result = await cloudinary.v2.uploader.upload(pathTofile, {
+        resource_type: "video",
+      });
+      console.log(result);*/
     //upload to google cloud storage
     /*const cloudStorage = new Storage({ keyFilename: "./key.json" });
     const result = await cloudStorage
@@ -84,27 +131,6 @@ exports.uploadTestimony = async (req, res, next) => {
     const filelink = result[0].metadata.selfLink;
     const fileId = result[0].metadata.id;*/
     //save testimony link to admin database
-    const uri = `${process.env.centralBase}/testimony/user/add`;
-    const { data } = await axios.post(uri, {
-      link: "", //filelink,
-      fileId: "",
-      user: userr.uid,
-      name: userr.name,
-      email: userr.email,
-    });
-    if (data.code != 200) {
-      //delete file from cloud
-      deleteFile(fileName);
-      return res.status(400).json({
-        code: 400,
-        message: "failed to upload testimony",
-      });
-    }
-    deleteFile(fileName);
-    res.status(200).json({
-      code: 200,
-      message: "uploaded successfully",
-    });
   } catch (e) {
     const { fileName } = req;
     //delete from cloud
