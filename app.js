@@ -56,7 +56,7 @@ app.use("/get", getRoute);
 app.use("/withdrawal",withdrawalRoute);
 app.use("/download", userVerifier.verifyUser, downloadRoute);
 app.use("/chat", chatRoute);
-app.use("/support", userVerifier.verifyUser, supportRoute);
+app.use("/support", supportRoute);
 app.use("/search", userVerifier.verifyUser, searchRouter);
 //connect to database
 //user.hasMany(referral, { onDelete: "CASCADE" });
