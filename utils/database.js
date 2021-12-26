@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
     process.env.dbPassword,
     {
       // dialect: "mysql",
-      port: process.env.port,
+      port: process.env.dbport,
       dialect: "postgres",
       host: process.env.host,
     }
