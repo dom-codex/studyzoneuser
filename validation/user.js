@@ -176,11 +176,23 @@ exports.validateUserDeviceAndStatus = async (req, res, next) => {
         message: "account does not exist",
       });
     }
-    if (!user.isLoggedIn && !user.isBlocked) {
-      return res.status(410).json({
+    if(!user.isActivated){
+      return res.status(400).json({
+        message:"account not activated",
+        code:400
+      })
+    }
+    if (!user.isLoggedIn) {
+      return res.status(401).json({
         code: 401,
-        message: "user not logged in or temporarily blocked",
+        message: "user not logged in",
       });
+    }
+    if(user.isBlocked){
+      return res.status(404).json({
+        code:404,
+        message:"account has been temporarily suspended,kindly contact support to resolve issue"
+      })
     }
     res.status(200).json({
       code: 200,
