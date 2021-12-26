@@ -28,7 +28,7 @@ exports.getGroupChatDetails = async (req, res, next) => {
   }
 };
 const deleteFile = (fileName, cb) => {
-  fs.unlink(path.join(`./uploads/${fileName}`), (e) => {
+  fs.unlink(fileName, (e) => {
     cb();
   });
 }
