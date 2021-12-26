@@ -33,14 +33,8 @@ exports.getAllNotifications = async (req, res, next) => {
 };
 exports.processNotificationFromAdmin = async (req, res, next) => {
   try {
-    const { canProceed, user } = req;
+    const {  user } = req;
     const { message, subject } = req.body;
-    if (!canProceed) {
-      return res.status(404).json({
-        code: 404,
-        message: "user not found",
-      });
-    }
     //create new notification with user details
     const newNotification = await notifyDb.create({
       message: message,

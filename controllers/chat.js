@@ -3,10 +3,11 @@ const chatDb = require("../models/chat");
 const { getIO } = require("../socket");
 const path = require("path");
 const fs = require("fs");
-const cloudinary = require("cloudinary");
 const multer = require("multer");
 const nanoid = require("nanoid").nanoid
 const sequelize = require("sequelize")
+const {Dropbox} = require("dropbox")
+const getLink = require("../utils/createOrgetLink")
 exports.getGroupChatDetails = async (req, res, next) => {
   try {
     const { canProceed } = req;
@@ -27,10 +28,10 @@ exports.getGroupChatDetails = async (req, res, next) => {
   }
 };
 const deleteFile = (fileName, cb) => {
-  fs.unlink(`./uploads/${fileName}`, (e) => {
+  fs.unlink(path.join(`./uploads/${fileName}`), (e) => {
     cb();
   });
-};
+}
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./uploads");
@@ -56,34 +57,43 @@ exports.sendChatMedia = async(req,res,next)=>{
       })
 
     }
-    const result = await cloudinary.v2.uploader.upload(pathTofile);
+   // const result = await cloudinary.v2.uploader.upload(pathTofile);
+   const uploadCallback = async(contents)=>{
+    const dropbox = new Dropbox({accessToken:process.env.dropboxToken})
+  const result = await dropbox.filesUpload({path:`/chatimages/${fileName}`,contents})
+  const link = await getLink("chatimages",fileName)
     const { message, time, user, department, name } = JSON.parse(req.body.data);
-    const newChat = await chatDb.create({
-      message,
-      time,
-      sender: user,
-      messageType:"SENDER_WITH_MEDIA",
-      mediaUrl:result.secure_url,
-      mediaName:result.public_id,
-      group:department
-    });
-    getIO().to(department).emit("incomingMessage", {
-      name: name,
-      message: newChat.message,
-      sender: user,
-      time: time,
-      chatId: newChat.chatId,
-      messageType:"RECEIVER_WITH_MEDIA",
-      mediaUrl:result.secure_url,
-      mediaName:result.public_id
-    });
-    deleteFile(pathTofile,()=>{
-      res.status(201).json({
-        code: 201,
-        message: "message sent successfully",
-        chatId:newChat.chatId
-      });
-    })
+     const newChat = await chatDb.create({
+       message,
+       time,
+       sender: user,
+       messageType:"SENDER_WITH_MEDIA",
+       mediaUrl:link,
+       mediaName:fileName,
+       group:department
+     });
+     getIO().to(department).emit("incomingMessage", {
+       name: name,
+       message: newChat.message,
+       sender: user,
+       time: time,
+       chatId: newChat.chatId,
+       messageType:"RECEIVER_WITH_MEDIA",
+       mediaUrl:link,
+       mediaName:fileName
+     });
+     deleteFile(pathTofile,()=>{
+       res.status(201).json({
+         code: 201,
+         message: "message sent successfully",
+         chatId:newChat.chatId
+       });
+     })
+   }
+   fs.readFile(pathTofile,async(e,contents)=>{
+     await uploadCallback(contents)
+   })
+
 
   }catch(e){
     console.log(e)
@@ -132,14 +142,8 @@ exports.sendChatMessage = async(req, res, next) => {
 };
 exports.getGroupOfflineMessages = async(req,res,next)=>{
   try{
-    const {canProceed} = req
-    if(!canProceed){
-      return res.status(401).json({
-        code:401,
-        message:"failed"
-      })
-    }
-    const {use,group,chatIds} = req.body
+  
+    const {user,group,chatIds} = req.body
     const chats = await chatDb.findAll({
   where:{
     sender:{
@@ -152,6 +156,13 @@ exports.getGroupOfflineMessages = async(req,res,next)=>{
     },
   },
   attributes:{exclude:["id","createdAt","updatedAt"]}
+})
+
+
+res.status(200).json({
+  chats:chats,
+  code:200,
+  message:"success"
 })
   }catch(e){
     console.log(e)
@@ -169,6 +180,7 @@ exports.getOfflineMessages = async(req,res,next)=>{
       chatIds:chatIds,
       group:group
     })
+    console.log(data.chats)
     return res.status(200).json({
       code:200,
       chats:data.chats

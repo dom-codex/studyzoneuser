@@ -1,13 +1,7 @@
 const axios = require("axios");
 exports.searchSchool = async (req, res, next) => {
   try {
-    const { canProceed } = req;
-    if (!canProceed) {
-      return res.status(404).json({
-        code: 404,
-        message: "user not found",
-      });
-    }
+
     const { school } = req.query;
     const uri = `${process.env.centralBase}/search/schools?school=${school}`;
     const { data } = await axios.get(uri);

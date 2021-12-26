@@ -33,10 +33,10 @@ exports.getAnnouncements = async(req,res,next)=>{
   try{
     const {page} = req.query
     const uri = `${process.env.centralBase}/notification/get/announcements?page=${page}`
-    const {data} = await axios.get(uri)
+    const {data:{announcements}} = await axios.get(uri)
     return res.status(200).json({
       code:200,
-      announcements:data.announcements
+      announcements:announcements?announcements:[]
     })
   }catch(e){
     console.log(e)

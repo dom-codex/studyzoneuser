@@ -80,3 +80,51 @@ exports.getBanks = (req,res,next)=>{
     })
   }
 }
+//MIDDLEWARE WHICH RETURNS USER INFORMATION WHEN CALLED BY THE ADMIN
+exports.getUserDetails = async(req,res,next)=>{
+  try{
+    const {userId} = req.query
+    const user = await userDb.findOne({
+      where:{
+        uid:userId
+      },
+      attributes: [
+        "name",
+        "id",
+        "email",
+        "phone",
+        "isLoggedIn",
+        "isBlocked",
+        "isActivated"
+      ],
+    })
+    if(!user){
+      return res.status(200).json({
+        message:"user not found",
+        code:404
+      })
+    }
+    const referralData = await referralDb.findOne({
+      where: {
+        userId: user.id,
+      },
+      attributes: ["noOfReferrals", "totalEarned"],
+    });
+    delete user.dataValues.id
+    return res.status(200).json({
+      code:200,
+      user,
+      totalEarned:referralData == null
+      ? {
+          noOfReferrals: 0,
+          totalEarned: 0,
+        }
+      : referralData.dataValues
+    })
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      message:"an error occurred"
+    })
+  }
+}

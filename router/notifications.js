@@ -3,7 +3,7 @@ const router = express.Router();
 const notification = require("../controllers/notifications");
 const notificationHandler = require("../usergetControllers/notifications");
 const userValidator = require("../validation/user");
-const {verifyUser} = require("../verification/userVerification")
+const {verifyUser,verifyUserForAdminPostRequest} = require("../verification/userVerification")
 router.get(
   "/all",
   verifyUser,
@@ -11,7 +11,7 @@ router.get(
 );
 router.post(
   "/post",
-  verifyUser,
+  verifyUserForAdminPostRequest,
   notification.processNotificationFromAdmin
 );
 router.get(

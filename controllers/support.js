@@ -4,9 +4,10 @@ const axios = require("axios");
 const io = require("../socket");
 const path = require("path");
 const fs = require("fs");
-const cloudinary = require("cloudinary");
 const multer = require("multer");
 const nanoid = require("nanoid").nanoid
+const {Dropbox} = require("dropbox")
+const getLink = require("../utils/createOrgetLink")
 exports.sendEmailToAdmin = async (req, res, next) => {
   try {
     const { canProceed } = req;
@@ -101,8 +102,65 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
     }
     //save image to cloud
     const pathTofile = path.join(`./uploads/${fileName}`);
-    const result = await cloudinary.v2.uploader.upload(pathTofile);
-console.log(result)
+    const uploadCallback = async(contents)=>{
+      const dropbox = new Dropbox({accessToken:process.env.dropboxToken})
+      await dropbox.filesUpload({path:`/support/${fileName}`,contents})
+      const link = await getLink("support",fileName)
+      const { message, sender, time, group } = req.body;
+      
+          const newMessage = await chatDb.build({
+            message,
+            sender,
+            time,
+            group,
+            mediaName: fileName,
+            mediaUrl: link,
+            messageType: "SENDER_WITH_MEDIA",
+          });
+          //send data to admin
+          const { dataValues } = newMessage;
+          
+          const uri = `${process.env.centralBase}/chat/send/message/to/admin`;
+          const { data } = await axios.post(uri, {
+            message: dataValues.message,
+            sender: dataValues.sender,
+            time: dataValues.time,
+            group: dataValues.group,
+            chatId: dataValues.chatId,
+            name: user.name,
+            email: user.email,
+            mediaUrl: link,
+            mediaName: fileName,
+          });
+          if (data.code != 200) {
+            await dropbox.filesDeleteV2({path:`/support/${fileName}`})
+            deleteFile(fileName, () => {
+              return res.status(data.code).json({
+                code: data.code,
+                message: data.message,
+              });
+            });
+          }
+          await newMessage.save();
+          deleteFile(fileName, () => {
+            res.status(200).json({
+              code: 200,
+              message: "sent",
+              chatId: dataValues.chatId,
+            });
+          });
+    }
+    fs.readFile(pathTofile,async(e,contents)=>{
+      if(e){
+        res.status(401).json({
+          message:"upload failed"
+        })
+      }else{
+        await uploadCallback(contents)
+      }
+    })
+//    const result = await cloudinary.v2.uploader.upload(pathTofile);
+//console.log(result)
     /* const cloudStorage = new Storage({ keyFilename: "./key.json" });
     const result = await cloudStorage
       .bucket("chatImages")
@@ -110,49 +168,6 @@ console.log(result)
     const filelink = result[0].metadata.selfLink;
     const fileId = result[0].metadata.id;*/
     //save message to db
-    const { message, sender, time, group } = req.body;
-console.log(sender)
-    const newMessage = await chatDb.build({
-      message,
-      sender,
-      time,
-      group,
-      mediaName: result.public_id,
-      mediaUrl: result.secure_url,
-      messageType: "SENDER_WITH_MEDIA",
-    });
-    //send data to admin
-    const { dataValues } = newMessage;
-    console.log(dataValues.message);
-    const uri = `${process.env.centralBase}/chat/send/message/to/admin`;
-    const { data } = await axios.post(uri, {
-      message: dataValues.message,
-      sender: dataValues.sender,
-      time: dataValues.time,
-      group: dataValues.group,
-      chatId: dataValues.chatId,
-      name: user.name,
-      email: user.email,
-      mediaUrl: result.secure_url,
-      mediaName: result.public_id,
-    });
-    if (data.code != 200) {
-      deleteFile(fileName, () => {
-        return res.status(data.code).json({
-          code: data.code,
-          message: data.message,
-        });
-      });
-    }
-    await newMessage.save();
-    console.log(dataValues);
-    deleteFile(fileName, () => {
-      res.status(200).json({
-        code: 200,
-        message: "sent",
-        chatId: dataValues.chatId,
-      });
-    });
   } catch (e) {
     console.log(e);
     res.status(500).json({

@@ -30,6 +30,7 @@ module.exports = async (req, res, next) => {
       ],
     });*/
     //extract ids
+    console.log(userInfo)
     const userIds = extractids(userInfo);
     //retrieve referralInfo
     const referralInfo = await referralDb.findAll({
@@ -97,6 +98,7 @@ const fetchusersInCategory = (req)=>{
   const limit = 1;
   const { page,category } = req.query;
   const where = getCondition(category)
+  
   return  userDb.findAll({
     limit: limit,
     where:where,

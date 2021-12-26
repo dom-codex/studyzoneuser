@@ -14,5 +14,5 @@ router.post("/user/status/toggle", userAuth.toggleUserStatus);
 router.post("/reset/device",resetController.resetDeviceId)
 router.post("/set/device",resetController.setNewDeviceId)
 router.post("/user/logout",userAuth.logout)
-router.post("/user/device",validator.validateUserDeviceAndStatus)
+router.post("/user/validate",validator.validateUserDeviceAndStatus)
 module.exports = router;

@@ -88,6 +88,9 @@ sequelize.sync({ alter: true }).then(async (_) => {
     
       socket.join(room);
     });
+    socket.on("rejoin",(data)=>{
+      socket.join(data)
+    })
     socket.on("joinGroup", (data) => {
     
       const sentData = JSON.parse(data);
@@ -99,8 +102,9 @@ sequelize.sync({ alter: true }).then(async (_) => {
       });
     });
     socket.on("leavingGroup",(raw)=>{
+      console.log("user left")
       const data = JSON.parse(raw)
-      socket.broadcast.to(data.department).emit("userLeft",{name:data.name,sender:data.user})
+      socket.broadcast.to(data.department).emit("userLeft",{name:data.name,sender:data.sender})
     })
   });
   console.log("listening...");

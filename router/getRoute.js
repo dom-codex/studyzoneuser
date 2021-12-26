@@ -4,7 +4,7 @@ const getNUsers = require("../controllers/GET/getNoOfUsers");
 const userlistController = require("../controllers/GET/userslist");
 const userInfoController = require("../controllers/GET/userInfo");
 const userValidator = require("../validation/user");
-const {getBanks,getProfileData} = require("../usergetControllers/profiledata");
+const {getBanks,getProfileData,getUserDetails} = require("../usergetControllers/profiledata");
 const referralDetailsController = require("../usergetControllers/referrals");
 const notificationsController = require("../usergetControllers/notifications");
 
@@ -71,4 +71,5 @@ router.get("/payment/status",verifyUser, getPaymentStatus);
 router.get("/freetrial/settings",verifyUser, checkFreeTrialOption);
 router.get("/pastquestions/price",verifyUser, getPastQuestionsPrice);
 router.get("/banks",verifyUser,getBanks)
+router.get("/user/info",getUserDetails)
 module.exports = router;
