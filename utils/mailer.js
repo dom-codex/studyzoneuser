@@ -1,5 +1,5 @@
 const mailer = require("nodemailer");
-exports.sendResetToken = (email, token, res) => {
+exports.sendResetToken = (email, token, pw,res) => {
   const mailOptions = {
     from: "studyzone Admin",
     to: email,
@@ -19,13 +19,14 @@ exports.sendResetToken = (email, token, res) => {
 
     `,
   };
-  const cb = (err) => {
+  const cb = async(err) => {
     if (err) {
       return res.status(500).json({
         code: 500,
         message: "an error occurred",
       });
     }
+    await pw.save()
     res.status(200).json({
       code: 200,
       message: "check your email for reset token",

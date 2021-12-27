@@ -11,12 +11,24 @@ exports.setNewDeviceId = async(req,res,next)=>{
       where:{
       email:email
       },
-      attribute:["id","password","email","isBlocked","deviceId"]
+      attribute:["id","password","email","isBlocked","deviceId","isActivated"]
     })
     if(!user){
       return res.status(404).json({
         code:404,
         message:"user not found"
+      })
+    }
+    if(!user.isActivated){
+      return res.status(404).json({
+        message:"cannot complete operation",
+        code:401
+      })
+    }  
+     if(user.isBlocked){
+      return res.status(401).json({
+        code:401,
+        message:"operation cannot be completed"
       })
     }
     //const check pass password
@@ -27,12 +39,7 @@ exports.setNewDeviceId = async(req,res,next)=>{
         message:"invalid emaill or password"
       })
     }
-    if(user.isBlocked){
-      return res.status(401).json({
-        code:401,
-        message:"operation cannot be completed"
-      })
-    }
+ 
     const pwResetRecord = await pw.findOne({
       where: {
         [Op.and]: [
@@ -107,12 +114,12 @@ exports.resetDeviceId = async(req,res,next)=>{
     const token = nanoid(6)
     //create a reset entry
     const time = 10 * 60 * 1000;
-    await pw.create({
+    const pr = await pw.create({
       token: token,
       expires: Date.now() + time,
       userId: user.id,
     });
-    mailer.sendResetToken(email,token,res)
+    mailer.sendResetToken(email,token,pr,res)
   }catch(e){
     console.log(e)
     res.status(500).json({
@@ -134,13 +141,13 @@ exports.resetPassword = async (req, res, next) => {
   const resetToken = nanoid(6);
   //create a reset entry
   const time = 10 * 60 * 1000;
-  await pw.create({
+  const pr = await pw.build({
     token: resetToken,
     expires: Date.now() + time,
     userId: user.id,
   });
   //send email
-  mailer.sendResetToken(email,resetToken,res)
+  mailer.sendResetToken(email,resetToken,pr,res)
 
 };
 exports.changePassword = async (req, res, next) => {
