@@ -1,12 +1,12 @@
 const transactionDb = require("../models/transaction");
 const { Op } = require("sequelize");
-const transaction = require("../models/transaction");
+const axios = require("axios")
 exports.getTransactions = async (req, res, next) => {
   try {
     const { canProceed, user } = req;
-    const { page} = req.query;
-  
-    const limit = 10;
+    const { page } = req.query;
+
+    const limit = 1;
     const transactions = await transactionDb.findAll({
       limit: limit,
       offset: limit * page,
@@ -30,8 +30,22 @@ exports.getTransactions = async (req, res, next) => {
   } catch (e) {
     console.log(e);
     res.status(500).json({
-      code:500,
-      message:"an error occurred"
+      code: 500,
+      message: "an error occurred"
     });
   }
 };
+exports.getCardPaymentSettings = async (req, res, next) => {
+  try {
+    const uri = `${process.env.centralBase}/user/get/payment/settings`
+    const { data: { value } } = await axios.get(uri)
+    return res.status(200).json({
+      canUseCard: value == "true" ? true : false
+    })
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({
+      message: "an error occurred"
+    })
+  }
+}

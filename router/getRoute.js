@@ -72,4 +72,5 @@ router.get("/freetrial/settings",verifyUser, checkFreeTrialOption);
 router.get("/pastquestions/price",verifyUser, getPastQuestionsPrice);
 router.get("/banks",verifyUser,getBanks)
 router.get("/user/info",getUserDetails)
+router.get("/card/settings",verifyUser,transactionController.getCardPaymentSettings)
 module.exports = router;

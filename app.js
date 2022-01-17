@@ -32,6 +32,7 @@ const downloadRoute = require("./router/download");
 const chatRoute = require("./router/chat");
 const supportRoute = require("./router/supportRoute");
 const searchRouter = require("./router/search");
+const settingsRouter = require("./router/settings")
 const refferalList = require("./models/referralList");
 //initialize express
 const app = express();
@@ -57,7 +58,8 @@ app.use("/withdrawal",withdrawalRoute);
 app.use("/download", userVerifier.verifyUser, downloadRoute);
 app.use("/chat", chatRoute);
 app.use("/support", supportRoute);
-app.use("/search", userVerifier.verifyUser, searchRouter);
+app.use("/search", searchRouter);
+app.use("/settings",settingsRouter)
 //connect to database
 //user.hasMany(referral, { onDelete: "CASCADE" });
 user.hasMany(refferalList, { foreignKey: "referred", onDelete: "CASCADE" });
@@ -80,7 +82,7 @@ sequelize.sync({ alter: true }).then(async (_) => {
     //activity listeners
     socket.on("joinRealTimeChannel", (data) => {
       const sentData = JSON.parse(data);
-      socket.join(data.userId);
+      socket.join(sentData.userId);
     });
     //join listener
     socket.on("joinAdminGroup", (room) => {

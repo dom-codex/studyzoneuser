@@ -18,7 +18,6 @@ const verifyUserAndDevice = async (userHash, deviceId) => {
       };
     }
     //validate device Id
-    console.log(deviceId)
     if (user.deviceId !== deviceId) {
       return {
         verified: false,

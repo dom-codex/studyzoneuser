@@ -7,7 +7,7 @@ module.exports = async (req, res, next) => {
   try {
     const { user } = req;
     const { page } = req.query;
-    const limit = 10;
+    const limit = 1;
     const referrerInfo = await referrersDb.findOne({
       where: {
         userId: user,
@@ -38,7 +38,10 @@ module.exports = async (req, res, next) => {
         code: 300,
         message: "no referrals yet",
         referrals: [],
-        referrerInfo: null,
+        referrerInfo: {
+          totalEarned:0,
+          noOfReferrals:0
+        },
       });
     }
     res.status(200).json({

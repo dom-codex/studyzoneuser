@@ -20,4 +20,5 @@ router.get(
   notificationHandler.getAnnouncements
 );
 router.post("/announcement", notification.newAnnouncement);
+router.post("/realtime/update",notification.receiveRealTimeUpdate)
 module.exports = router;

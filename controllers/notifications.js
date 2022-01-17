@@ -75,3 +75,16 @@ exports.newAnnouncement = async (req, res, next) => {
     console.log(e);
   }
 };
+exports.receiveRealTimeUpdate = async(req,res,next)=>{
+  try{
+    const {name,value} = req.body
+    console.log(value)
+    IO.getIO().emit(name,value)
+    res.status(200).json({message:"sent"})
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      message:"an error occurred"
+    })
+  }
+}

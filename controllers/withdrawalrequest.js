@@ -92,7 +92,9 @@ exports.reverseWithdrawal = async (req, res, next) => {
       userId:user.id
     });
     //send socket message
-    IO.getIO().to(userId).emit("newNotification", notification);
+    //IO.getIO().to(userId).emit("newNotification", notification);
+    IO.getIO().to(userId).emit("incomingNotification", notification);
+    IO.getIO().to(userId).emit("reversal",record.totalEarned)
     res.status(200).json({
       message: "reversed",
       code: 200,

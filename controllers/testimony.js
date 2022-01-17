@@ -118,19 +118,6 @@ exports.uploadTestimony = async (req, res, next) => {
         await sendResponse(resp.result.name,resp.result.name)
       }
     })
-    //upload file to database (cloudingary)
-    /*  const result = await cloudinary.v2.uploader.upload(pathTofile, {
-        resource_type: "video",
-      });
-      console.log(result);*/
-    //upload to google cloud storage
-    /*const cloudStorage = new Storage({ keyFilename: "./key.json" });
-    const result = await cloudStorage
-      .bucket("studyzonetestimonies")
-      .upload(`./${pathTofile}`, { destination: fileName });
-    const filelink = result[0].metadata.selfLink;
-    const fileId = result[0].metadata.id;*/
-    //save testimony link to admin database
   } catch (e) {
     const { fileName } = req;
     //delete from cloud
