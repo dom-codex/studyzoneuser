@@ -3,12 +3,11 @@ const userDb = require("../models/user");
 const verifyUserAndDevice = async (userHash, deviceId) => {
   try {
     //find user
-    console.log(userHash)
     const user = await userDb.findOne({
       where: {
         uid: userHash,
       },
-      attribute: ["id", "deviceId", "email"],
+      attribute: ["id", "deviceId", "email","isBlocked","isActivated"],
     });
     if (!user) {
       return {
@@ -16,6 +15,16 @@ const verifyUserAndDevice = async (userHash, deviceId) => {
         code: 404,
         message: "user not found",
       };
+    }
+    if(user.isBlocked)return {
+      verified:false,
+      code:410,
+      message:"account has been suspended,kindly contact support for help"
+    }
+    if(!user.isActivated)return{
+      verified:false,
+      code:410,
+      message:"account has not been activated"
     }
     //validate device Id
     if (user.deviceId !== deviceId) {
