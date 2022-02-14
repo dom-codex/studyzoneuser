@@ -36,14 +36,19 @@ exports.extractWithMulter = multer({
 exports.checkForTestimony = async (req, res, next) => {
   try {
     const { userHash } = req.body
+    const {fileName} = req;
     //check for testimony
     const testimonycheckuri = `${process.env.centralBase}/testimony/user?user=${userHash}`;
     const isTestimony = await axios(testimonycheckuri);
     if (isTestimony.data.code == 200) {
-      return res.status(405).json({
+      const pathTofile = path.join(`./uploads/${fileName}`);
+      fs.unlink(pathTofile,(e)=>{
+         return res.status(405).json({
         code: 405,
         message: "already uploaded a testimony",
       });
+      })
+     return;
     }
     //forward request to next middleware if no testimony 
     next()
