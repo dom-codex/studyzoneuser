@@ -6,10 +6,11 @@ const compileResult = require("../../utils/compileUserResult");
 const referral = require("../../models/referral");
 const { Op } = require("sequelize");
 const sequelize = require("sequelize");
+const { limit } = require("../../utils/constants");
+
 module.exports = async (req, res, next) => {
   try {
     //validate calls
-    const limit = 15;
     const { page } = req.query;
     /*  switch (type) {
       case "all":*/
@@ -30,7 +31,6 @@ module.exports = async (req, res, next) => {
       ],
     });*/
     //extract ids
-    console.log(userInfo)
     const userIds = extractids(userInfo);
     //retrieve referralInfo
     const referralInfo = await referralDb.findAll({
@@ -72,7 +72,6 @@ module.exports = async (req, res, next) => {
     });
   }
 };
-console.log("called")
 const getCondition = (category)=>{
   if(category=="ACTIVATED"){
     return {
@@ -95,14 +94,13 @@ const getCondition = (category)=>{
 }
 const fetchusersInCategory = (req)=>{
   //validate calls
-  const limit = 1;
   const { page,category } = req.query;
   const where = getCondition(category)
   
   return  userDb.findAll({
     limit: limit,
     where:where,
-    offset: limit * page,
+    offset: limit * (page - 1),
     attributes: [
       "id",
       "name",

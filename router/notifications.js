@@ -21,4 +21,6 @@ router.get(
 );
 router.post("/announcement", notification.newAnnouncement);
 router.post("/realtime/update",notification.receiveRealTimeUpdate)
+router.post("/notify/delete/school",notification.schoolDeleteHandler)
+router.post("/notify/delete/pastquestion",notification.pastQuestionDeleteHandler)
 module.exports = router;

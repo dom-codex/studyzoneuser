@@ -3,11 +3,11 @@ const userdb = require("../models/user");
 const extractReffered = require("../utils/extractReferralsId");
 const referrersDb = require("../models/referral");
 const sequelize = require("sequelize");
+const {limit} = require("../utils/constants")
 module.exports = async (req, res, next) => {
   try {
     const { user } = req;
     const { page } = req.query;
-    const limit = 1;
     const referrerInfo = await referrersDb.findOne({
       where: {
         userId: user,
@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
     });
     const referrallist = await refferalList.findAll({
       limit: limit,
-      offset: page * limit,
+      offset: (page - 1) * limit,
       where: {
         referrer: user,
       },

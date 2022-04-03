@@ -8,6 +8,7 @@ const multer = require("multer");
 const nanoid = require("nanoid").nanoid
 const {Dropbox} = require("dropbox")
 const getLink = require("../utils/createOrgetLink")
+const userDb = require("../models/user")
 exports.sendEmailToAdmin = async (req, res, next) => {
   try {
     const { canProceed } = req;
@@ -34,17 +35,20 @@ exports.sendChatToAdmin = async (req, res, next) => {
       });
     }
     //save message to db
-    const { message, sender, time, group } = req.body;
+    const { message, sender, time, group,timeSent } = req.body;
+    const msgTime = Date.now()
     const newMessage = await chatDb.build({
       message,
       sender,
       time,
       group,
       messageType: "SENDER",
+      timeSent:msgTime
     });
+    
     //send data to admin
     const { dataValues } = newMessage;
-    console.log(dataValues.message);
+    
     const uri = `${process.env.centralBase}/chat/send/message/to/admin`;
     const { data } = await axios.post(uri, {
       message: dataValues.message,
@@ -54,6 +58,7 @@ exports.sendChatToAdmin = async (req, res, next) => {
       chatId: dataValues.chatId,
       name: user.name,
       email: user.email,
+      timeSent:msgTime
     });
     if (data.code != 200) {
       return res.status(data.code).json({
@@ -62,11 +67,11 @@ exports.sendChatToAdmin = async (req, res, next) => {
       });
     }
     await newMessage.save();
-    console.log(dataValues);
     res.status(200).json({
       code: 200,
       message: "sent",
       chatId: dataValues.chatId,
+      msgTime:msgTime
     });
   } catch (e) {
     console.log(e);
@@ -106,8 +111,8 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
       const dropbox = new Dropbox({accessToken:process.env.dropboxToken})
       await dropbox.filesUpload({path:`/support/${fileName}`,contents})
       const link = await getLink("support",fileName)
-      const { message, sender, time, group } = req.body;
-      
+      const { message, sender, time, group,timeSent } = req.body;
+      const msgTime = Date.now()
           const newMessage = await chatDb.build({
             message,
             sender,
@@ -116,6 +121,7 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
             mediaName: fileName,
             mediaUrl: link,
             messageType: "SENDER_WITH_MEDIA",
+            timeSent:msgTime
           });
           //send data to admin
           const { dataValues } = newMessage;
@@ -131,6 +137,7 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
             email: user.email,
             mediaUrl: link,
             mediaName: fileName,
+            timeSent:msgTime
           });
           if (data.code != 200) {
             await dropbox.filesDeleteV2({path:`/support/${fileName}`})
@@ -147,6 +154,7 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
               code: 200,
               message: "sent",
               chatId: dataValues.chatId,
+              msgTime:msgTime
             });
           });
     }
@@ -178,7 +186,7 @@ exports.sendMediaMessageToAdmin = async (req, res, next) => {
 };
 exports.receiveMessageFromAdmin = async (req, res, next) => {
   try {
-    const { message, time, sender, group, chatId, mediaName, mediaUrl } =
+    const { message, time, sender, group, chatId, mediaName, mediaUrl,timeSent } =
       req.body;
     const newChat = await chatDb.create({
       message,
@@ -189,6 +197,7 @@ exports.receiveMessageFromAdmin = async (req, res, next) => {
       messageType: mediaName ? "RECEIVER_WITH_MEDIA" : "RECEIVER",
       mediaName,
       mediaUrl,
+      timeSent
     });
     const IO = io.getIO();
     IO.to(group).emit("newMessage", newChat.dataValues);
@@ -201,3 +210,27 @@ exports.receiveMessageFromAdmin = async (req, res, next) => {
     res.status(500).end();
   }
 };
+exports.contactAdmin = async(req,res,next)=>{
+  try{
+    const {email}= req.body;
+    //CHECK IF USER EXISTS ALREADY
+    const user = await userDb.findOne({
+      where:{
+        email:email
+      },
+      attributes:["id"]
+    })
+    if(!user){
+      return res.status(200).json({
+        code:200,
+        message:"Email is not associated to any account"
+      })
+    }
+    //SEND MAIL TO ADMIN
+    mailer.sendEmailToAdmin(req.body, res);
+      }catch(e){
+    res.status(500).json({
+      message:"an error occurred"
+    })
+  }
+} 

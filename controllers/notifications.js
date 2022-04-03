@@ -1,10 +1,11 @@
 const notifyDb = require("../models/notifications");
 const userDb = require("../models/user");
 const IO = require("../socket");
+const {limit} = require("../utils/constants")
 exports.getAllNotifications = async (req, res, next) => {
   const { email, uid } = req.body;
   const { page } = req.query;
-  const noOfOffsets = 10;
+  const noOfOffsets = 1;
   //1. find user
   const user = await userDb.findOne({
     where: {
@@ -23,8 +24,8 @@ exports.getAllNotifications = async (req, res, next) => {
     where: {
       userId: user.id,
     },
-    ofsets: noOfOffsets * (page - 1),
-    limit: 10,
+    ofsets: page * limit,
+    limit: limit,
   });
   res.status(200).json({
     code: 200,
@@ -86,5 +87,22 @@ exports.receiveRealTimeUpdate = async(req,res,next)=>{
     res.status(500).json({
       message:"an error occurred"
     })
+  }
+}
+exports.schoolDeleteHandler = async(req,res,next)=>{
+  try{
+    IO.getIO().emit("deleteSchool",req.body)
+    res.status(200).json({})
+  }catch(e){
+    console.log(e)
+  }
+}
+exports.pastQuestionDeleteHandler = async(req,res,next)=>{
+  try{
+    IO.getIO().emit("deletePastQuestion",req.body)
+    res.status(200).json({})
+  }catch(e){
+    console.log(e)
+    res.status(500).json({})
   }
 }

@@ -66,6 +66,7 @@ router.get(
   verifyUser,
   transactionController.getTransactions
 );
+router.get("/transaction/latest/time",verifyUser,transactionController.getTransactionLatestTime)
 router.get("/pastquestions/only",verifyUser ,getPastquestionsOnly);
 router.get("/payment/status",verifyUser, getPaymentStatus);
 router.get("/freetrial/settings",verifyUser, checkFreeTrialOption);

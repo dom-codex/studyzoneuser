@@ -84,7 +84,19 @@ exports.setNewDeviceId = async(req,res,next)=>{
 }
 exports.resetDeviceId = async(req,res,next)=>{
   try{
-    const {email,password} = req.body
+    const {email,password,deviceId} = req.body
+    const alreadyUsed = await userDb.findOne({
+      where:{
+       deviceId:deviceId 
+      },
+      attributes:["id"]
+    })
+    if(alreadyUsed !=null){
+      return res.status(410).json({
+        message:"device already in use",
+        code:410
+      })
+    }
     const user = await userDb.findOne({
       where:{
       email:email
@@ -219,7 +231,7 @@ exports.updatePassword = async (req, res, next) => {
     if (!result) {
       return res.status(400).json({
         code: 400,
-        message: "invalid password",
+        message: "incorrect old password",
       });
     }
     //hash new password

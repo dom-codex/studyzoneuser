@@ -15,14 +15,16 @@ router.post(
         if (!e) {
           return next();
         }
-        res.json({
+        res.status(401).json({
           message: e.message,
-          code: 402,
+          code: 401,
         });
       });
     } catch (e) {
       console.log(e);
-      res.status(500).end();
+      res.status(500).json({
+        message:"an error occurred"
+      });
     }
   },
   verifyUser,

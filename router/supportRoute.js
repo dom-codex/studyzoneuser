@@ -23,4 +23,5 @@ router.post(
   validator.validateUserOnPostRequest,
   supportController.sendMediaMessageToAdmin
 );
+router.post("/contact/admin",supportController.contactAdmin)
 module.exports = router;

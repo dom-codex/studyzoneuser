@@ -8,6 +8,7 @@ const nanoid = require("nanoid").nanoid
 const sequelize = require("sequelize")
 const {Dropbox} = require("dropbox")
 const getLink = require("../utils/createOrgetLink")
+const {limit} = require("../utils/constants")
 exports.getGroupChatDetails = async (req, res, next) => {
   try {
     const { canProceed } = req;
@@ -62,15 +63,17 @@ exports.sendChatMedia = async(req,res,next)=>{
     const dropbox = new Dropbox({accessToken:process.env.dropboxToken})
   const result = await dropbox.filesUpload({path:`/chatimages/${fileName}`,contents})
   const link = await getLink("chatimages",fileName)
-    const { message, time, user, department, name } = JSON.parse(req.body.data);
-     const newChat = await chatDb.create({
+    const { message, time, user, department, name,timeSent } = JSON.parse(req.body.data);
+    const msgTime = Date.now() 
+    const newChat = await chatDb.create({
        message,
        time,
        sender: user,
        messageType:"SENDER_WITH_MEDIA",
        mediaUrl:link,
        mediaName:fileName,
-       group:department
+       group:department,
+       timeSent:msgTime
      });
      getIO().to(department).emit("incomingMessage", {
        name: name,
@@ -80,13 +83,15 @@ exports.sendChatMedia = async(req,res,next)=>{
        chatId: newChat.chatId,
        messageType:"RECEIVER_WITH_MEDIA",
        mediaUrl:link,
-       mediaName:fileName
+       mediaName:fileName,
+       timeSent:msgTime
      });
      deleteFile(pathTofile,()=>{
        res.status(201).json({
          code: 201,
          message: "message sent successfully",
-         chatId:newChat.chatId
+         chatId:newChat.chatId,
+         msgTime:msgTime
        });
      })
    }
@@ -110,13 +115,15 @@ exports.sendChatMedia = async(req,res,next)=>{
 }
 exports.sendChatMessage = async(req, res, next) => {
   try {
-    const { message, time, user, department, name } = req.body;
+    const { message, time, user, department, name,timeSent } = req.body;
+    const msgTime = Date.now()
     const newChat = await chatDb.create({
       message,
       time,
       sender: user,
       messageType:"SENDER",
-      group:department
+      group:department,
+      timeSent:msgTime
     });
     //send socket to interested parties
     getIO().to(department).emit("incomingMessage", {
@@ -126,11 +133,13 @@ exports.sendChatMessage = async(req, res, next) => {
       sender: user,
       time: time,
       chatId: newChat.chatId,
+      timeSent:msgTime
     });
     res.status(201).json({
       code: 201,
       message: "message sent successfully",
-      chatId:newChat.chatId
+      chatId:newChat.chatId,
+      msgTime:msgTime
     });
   } catch (e) {
     console.log(e);
@@ -143,21 +152,39 @@ exports.sendChatMessage = async(req, res, next) => {
 exports.getGroupOfflineMessages = async(req,res,next)=>{
   try{
   
-    const {user,group,chatIds} = req.body
-    const chats = await chatDb.findAll({
+    const {group,userHash,firstLoad,timeSent} = req.body
+    let chats =firstLoad? await chatDb.findAll({ 
+     // order:[["timeSent","DESC"]],
+
   where:{
     sender:{
-      [sequelize.Op.not]:user
+      [sequelize.Op.not]:userHash
     },
     group:group,
-    chatId:{
+    timeSent:{
+      [sequelize.Op.gt]:timeSent
+    }
+    /*chatId:{
       [sequelize.Op.notIn]:chatIds
 
-    },
+    },*/
   },
   attributes:{exclude:["id","createdAt","updatedAt"]}
-})
+}): await chatDb.findAll({
+  limit:limit,
+  //order:[["timeSent","DESC"]],
+  where:{
+    sender:{
+      [sequelize.Op.not]:userHash
+    },
+    group:group,
+    timeSent:{
+      [sequelize.Op.lt]:timeSent
+    },
+  } ,
+     attributes:{exclude:["id","createdAt","updatedAt"]} 
 
+})
 
 res.status(200).json({
   chats:chats,
@@ -174,16 +201,27 @@ res.status(200).json({
 }
 exports.getOfflineMessages = async(req,res,next)=>{
   try{
-    const {chatIds,group} = req.body
-    const uri  =`${process.env.centralBase}/chat/get/offline/chats`
+    const {group,timeSent,firstLoad} = req.body
+   /* const uri  =`${process.env.centralBase}/chat/get/offline/chats`
     const {data} = await axios.post(uri,{
-      chatIds:chatIds,
-      group:group
+      //chatIds:chatIds,
+      group:group,
+      timeSent:timeSent,
+      firstLoad:firstLoad
+    })*/
+    const chats = await chatDb.findAll({
+      order:[["id","DESC"]],  
+      where: {
+        group: group,
+        timeSent:{
+          [sequelize.Op.gt]:parseInt(timeSent)
+        }
+      },
+      //offset: limit * page,
     })
-    console.log(data.chats)
     return res.status(200).json({
       code:200,
-      chats:data.chats
+      chats:chats
     })
   }catch(e){
     console.log(e)

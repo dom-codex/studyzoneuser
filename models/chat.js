@@ -34,4 +34,7 @@ module.exports = sequelize.define("chat", {
   messageType: {
     type: Sequelize.STRING,
   },
+  timeSent:{
+    type:Sequelize.BIGINT
+  }
 });

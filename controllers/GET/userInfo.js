@@ -1,6 +1,7 @@
 const refferalList = require("../../models/referralList");
 const userDb = require("../../models/user");
 const sequelize = require("sequelize");
+const { limit } = require("../../utils/constants");
 exports.getUserReferralList = async (req, res, next) => {
   try {
     const { userId, page } = req.query;
@@ -18,10 +19,9 @@ exports.getUserReferralList = async (req, res, next) => {
       });
     }
     //retrieve referrals
-    const limit = 10;
     const referredIdsList = await refferalList.findAll({
       limit: limit,
-      offset: limit * page,
+      offset: limit * (page-1),
       where: {
         referrer: user.id,
       },

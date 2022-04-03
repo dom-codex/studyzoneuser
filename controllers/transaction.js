@@ -1,15 +1,14 @@
 const transactionDb = require("../models/transaction");
 const { Op } = require("sequelize");
 const axios = require("axios")
+const {limit} = require("../utils/constants")
 exports.getTransactions = async (req, res, next) => {
   try {
     const { canProceed, user } = req;
     const { page } = req.query;
-
-    const limit = 1;
     const transactions = await transactionDb.findAll({
       limit: limit,
-      offset: limit * page,
+      offset: limit * (page-1),
       where: {
         userId: user,
       },
@@ -46,6 +45,27 @@ exports.getCardPaymentSettings = async (req, res, next) => {
     console.log(e)
     res.status(500).json({
       message: "an error occurred"
+    })
+  }
+}
+exports.getTransactionLatestTime = async(req,res,next)=>{
+  try{
+    const {department} = req.query
+    const {user} = req
+    const transaction = await transactionDb.findOne({
+      where:{
+        department:department,
+        userId:user
+      },
+      attributes:["createdAt"]
+    })
+    return res.status(200).json({
+      message:transaction?Date.parse(transaction.createdAt).toString():null
+    })
+  }catch(e){
+    console.log(e);
+    res.status(500).json({
+      message:"an error occurred"
     })
   }
 }

@@ -43,7 +43,10 @@ exports.verifyCardTransaction = async (req, res, next) => {
 };
 exports.verifyLisenseKey = async (req, res, next) => {
   try {
-    const { key, amount } = req.body;
+    const { key, amount,paymentMethod } = req.body;
+    if(paymentMethod.toLowerCase() === "card"){
+      return next()
+    }
     const uri = `${process.env.centralBase}/validate/lisensekey`;
     const {
       data: { isUsed, message },
@@ -61,6 +64,11 @@ exports.verifyLisenseKey = async (req, res, next) => {
     }
   } catch (e) {
     console.log(e);
+    if(e.isAxiosError){
+      return res.status(400).json({
+        message:e.response.data.message
+      })
+    }
     res.status(500).json({
       message: "an error occurred",
     });

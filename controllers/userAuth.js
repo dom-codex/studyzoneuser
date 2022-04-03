@@ -8,6 +8,7 @@ const addReferral = require("../helpers/addReferral");
 //mailer imports
 const mailer = require("../utils/mailer");
 const IO = require("../socket");
+const {generateActivationCode,generateReferralCode} = require("../utils/generateOtps")
 exports.signUp = async (req, res, next) => {
   try {
     //retrieve input from body
@@ -21,8 +22,8 @@ exports.signUp = async (req, res, next) => {
     //hash password
     const hashedPassword = await bcyrpt.hash(password, 12);
     //generate activattion code
-    const activationCode = codeGen.nanoid(5);
-    const referralCode = codeGen.nanoid(6);
+    const activationCode = await generateActivationCode() //generateOtp();
+    const referralCode = await generateReferralCode();
     //create user account
     const time = Date.now();
     const user = await userDb.create({
@@ -34,7 +35,7 @@ exports.signUp = async (req, res, next) => {
       activationCode: activationCode,
       referral: referralCode,
       freeTrialStartMillis: time,
-      freeTrialEndMillis: time + 24 * 60 * 60 * 1000,
+      freeTrialEndMillis: time + (24 * 60 * 60 * 1000),
     });
     //check if creation is successful or not
     if (user == null) {

@@ -1,15 +1,16 @@
 const notificationDb = require("../models/notifications");
 const axios = require("axios")
+const {limit} = require("../utils/constants")
 exports.getNotifications = async (req, res, next) => {
   try {
     const { user } = req;
     const { page } = req.query;
  
     //get notifications
-    const limit = 10;
     const notifications = await notificationDb.findAll({
       limit: limit,
-      offset: limit * page,
+      order:[["id","DESC"]],
+      offset: limit * (page-1),
       where: {
         userId: user,
       },
@@ -21,12 +22,16 @@ exports.getNotifications = async (req, res, next) => {
         "subject",
       ],
     });
+    
     return res.status(200).json({
       code: 200,
       notifications,
     });
   } catch (e) {
     console.log(e);
+    res.status(500).json({
+      message:"an error occurred"
+    })
   }
 };
 exports.getAnnouncements = async(req,res,next)=>{

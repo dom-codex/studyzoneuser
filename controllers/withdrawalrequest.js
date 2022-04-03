@@ -14,6 +14,17 @@ exports.requestWithdrawal = async (req, res, next) => {
       attributes:["name","email","uid","bank","accountNo","accountName","bankCode"]
     })
     const { amount } = req.body;
+    const referrerRecord = await referrerDb.findOne({
+      where: {
+        userId: user,
+      },
+      attribute: ["totalEarned", "id"],
+    });
+    if(referrerRecord.totalEarned < amount){
+      return res.status(401).json({
+        message:"Insufficient balance"
+      })
+    }
     const requestUrl = `${process.env.centralBase}/withdrawal/request`;
     const result = await axios.post(requestUrl, {
       name: userr.name,
@@ -26,18 +37,12 @@ exports.requestWithdrawal = async (req, res, next) => {
       bankCode:userr.bankCode
     });
     if (result.data.code != 200) {
-      return res.json({
+      return res.status(result.data.code).json({
         code: result.data.code,
         message: result.data.message,
       });
     }
     //reduce user's earned amount
-    const referrerRecord = await referrerDb.findOne({
-      where: {
-        userId: user,
-      },
-      attribute: ["totalEarned", "id"],
-    });
     referrerRecord.totalEarned = referrerRecord.totalEarned - amount;
     await referrerRecord.save();
     return res.status(200).json({
@@ -112,9 +117,9 @@ exports.confirmIfCanProceedWithWithdrawal = async(req,res,next)=>{
     const {userHash} = req.body
     //construct uri
     const uri = `${process.env.centralBase}/withdrawal/comfirm/status?user=${userHash}`
-    const {data:canProceed} = await axios(uri)
+    const {data:{canProceed}} = await axios(uri)
     if(canProceed) return next()
-    return res.status(200).json({
+    return res.status(401).json({
       message:"withdrawal cannot be processed at the moment please upload a positive testimony about this platform, then try again "
     })
   }catch(e){
