@@ -24,6 +24,8 @@ exports.signUp = async (req, res, next) => {
     //generate activattion code
     const activationCode = await generateActivationCode() //generateOtp();
     const referralCode = await generateReferralCode();
+    //console.log(referralCode)
+   // console.log(activationCode)
     //create user account
     const time = Date.now();
     const user = await userDb.create({
